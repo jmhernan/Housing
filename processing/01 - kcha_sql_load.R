@@ -31,22 +31,23 @@ library(odbc) # Used to connect to SQL server
 library(openxlsx) # Used to import/export Excel files
 library(data.table) # Used to read in csv files more efficiently
 library(tidyverse) # Used to manipulate data
+library(readxl)
 
-kcha_path <- "//phdata01/DROF_DATA/DOH DATA/Housing/KCHA/Original data"
-db.apde51 <- dbConnect(odbc(), "PH_APDEStore51")
+kcha_path <- "//home/ubuntu/data/KCHA"
+#db.apde51 <- dbConnect(odbc(), "PH_APDEStore51")
 
-
-panel_1_2004_2015_fname <- "kcha_panel_01_2004_2015.csv"
-panel_2_2004_2015_fname <- "kcha_panel_02_2004_2015.csv"
-panel_3_2004_2015_fname <- "kcha_panel_03_2004_2015.csv"
+#changing data files to match
+panel_1_2004_2015_fname <- "kcha_panel_01.csv"
+panel_2_2004_2015_fname <- "kcha_panel_02.csv"
+panel_3_2004_2015_fname <- "kcha_panel_03.csv"
 panel_1_2016_fname <- "kcha_panel_01_2016.csv"
 panel_2_2016_fname <- "kcha_panel_02_2016.csv"
 panel_3_2016_fname <- "kcha_panel_03_2016.csv"
-panel_1_2017_fname <- "kcha_panel_01_2017.csv"
-panel_2_2017_fname <- "kcha_panel_02_2017.csv"
-panel_3_2017_fname <- "kcha_panel_03_2017.csv"
+#panel_1_2017_fname <- "kcha_panel_01_2017.csv"
+#panel_2_2017_fname <- "kcha_panel_02_2017.csv"
+#panel_3_2017_fname <- "kcha_panel_03_2017.csv"
 
-kcha_eop_fname <- "EOP Certifications_received_2017-10-05.csv"
+kcha_eop_fname <- "EOP Certifications_received_2017-10-05.xlsx"
 
 #####################################
 #### PART 1: RAW DATA PROCESSING ####
@@ -82,37 +83,39 @@ kcha_2016_p3 <- fread(file = file.path(kcha_path, panel_3_2016_fname),
                       stringsAsFactors = F,
                       colClasses = list(character = c("h19a9a", "h19b09")))
 
-
-kcha_2017_p1 <- fread(file = file.path(kcha_path, panel_1_2017_fname), 
-                      na.strings = c("NA", " ", "", "NULL", "N/A", ".", ". "), 
-                      stringsAsFactors = FALSE)
-kcha_2017_p2 <- fread(file = file.path(kcha_path, panel_2_2017_fname), 
-                      na.strings = c("NA", " ", "", "NULL", "N/A", ".", ". "), 
-                      stringsAsFactors = F,
-                      colClasses = 
-                        list(character = c("h3b12", "h3c12", "h3d12", "h3e12", 
-                                           "h3g12", "h3h12", "h3i12", "h3j12", 
-                                           "h3k12a", "h3k12b", "h3k12c", 
-                                           "h3k12d", "h3k12e", "h3n12", 
-                                           "h3b13", "h3c13", "h3d13", "h3e13", 
-                                           "h3g13", "h3h13", "h3i13", "h3j13", 
-                                           "h3k13a", "h3k13b", "h3k13c", 
-                                           "h3k13d", "h3k13e", "h3n13", 
-                                           "h3b14", "h3c14", "h3d14", "h3e14", 
-                                           "h3g14", "h3h14", "h3i14", "h3j14", 
-                                           "h3k14a", "h3k14b", "h3k14c", 
-                                           "h3k14d", "h3k14e", "h3n14"
-                                           )))
-kcha_2017_p3 <- fread(file = file.path(kcha_path, panel_3_2017_fname), 
-                      na.strings = c("NA", " ", "", "NULL", "N/A", ".", ". "), 
-                      stringsAsFactors = F,
-                      colClasses = list(character = c("h19b09", "h19a9a")))
+# kcha_2017_p1 <- fread(file = file.path(kcha_path, panel_1_2017_fname), 
+#                       na.strings = c("NA", " ", "", "NULL", "N/A", ".", ". "), 
+#                       stringsAsFactors = FALSE)
+# kcha_2017_p2 <- fread(file = file.path(kcha_path, panel_2_2017_fname), 
+#                       na.strings = c("NA", " ", "", "NULL", "N/A", ".", ". "), 
+#                       stringsAsFactors = F,
+#                       colClasses = 
+#                         list(character = c("h3b12", "h3c12", "h3d12", "h3e12", 
+#                                            "h3g12", "h3h12", "h3i12", "h3j12", 
+#                                            "h3k12a", "h3k12b", "h3k12c", 
+#                                            "h3k12d", "h3k12e", "h3n12", 
+#                                            "h3b13", "h3c13", "h3d13", "h3e13", 
+#                                            "h3g13", "h3h13", "h3i13", "h3j13", 
+#                                            "h3k13a", "h3k13b", "h3k13c", 
+#                                            "h3k13d", "h3k13e", "h3n13", 
+#                                            "h3b14", "h3c14", "h3d14", "h3e14", 
+#                                            "h3g14", "h3h14", "h3i14", "h3j14", 
+#                                            "h3k14a", "h3k14b", "h3k14c", 
+#                                            "h3k14d", "h3k14e", "h3n14"
+#                                            )))
+# kcha_2017_p3 <- fread(file = file.path(kcha_path, panel_3_2017_fname), 
+#                       na.strings = c("NA", " ", "", "NULL", "N/A", ".", ". "), 
+#                       stringsAsFactors = F,
+#                       colClasses = list(character = c("h19b09", "h19a9a")))
 
 
 # Some of the KCHA end of participation data is missing from the original extract
-kcha_eop <- fread(file = file.path(kcha_path, kcha_eop_fname),
-                  na.strings = c("NA", " ", "", "NULL", "N/A", ".", ". "), 
-                  stringsAsFactors = F)
+kcha_eop <- read_excel(file.path(kcha_path, kcha_eop_fname),
+                       na = c("NA", " ", "", "NULL", "N/A", ".", ". "))
+
+# kcha_eop <- fread(file = file.path(kcha_path, kcha_eop_fname),
+#                   na.strings = c("NA", " ", "", "NULL", "N/A", ".", ". "), 
+#                   stringsAsFactors = F)
 
 
 # Bring in variable name mapping table
@@ -155,10 +158,9 @@ kcha_2016_full <- list(kcha_2016_p1, kcha_2016_p2, kcha_2016_p3) %>%
   Reduce(function(dtf1, dtf2) full_join(
     dtf1, dtf2, by = c("householdid", "certificationid", "h2a", "h2b")), .)
 
-kcha_2017_full <- list(kcha_2017_p1, kcha_2017_p2, kcha_2017_p3) %>%
-  Reduce(function(dtf1, dtf2) full_join(
-    dtf1, dtf2, by = c("householdid", "certificationid", "h2a", "h2b")), .)
-
+# kcha_2017_full <- list(kcha_2017_p1, kcha_2017_p2, kcha_2017_p3) %>%
+#   Reduce(function(dtf1, dtf2) full_join(
+#     dtf1, dtf2, by = c("householdid", "certificationid", "h2a", "h2b")), .)
 
 ### Rename and reformat a few variables to make for easier appending
 # Dates in older data come as integers with dropped leading zeros 
@@ -175,16 +177,16 @@ kcha_2004_2015_full <- kcha_2004_2015_full %>%
 kcha_2016_full <- kcha_2016_full %>%
   mutate_at(vars(h2b, h2h, starts_with("h3e")),
             funs(as.Date(., format = "%m/%d/%Y")))
-kcha_2017_full <- kcha_2017_full %>%
-  mutate_at(vars(h2b, h2h, starts_with("h3e")),
-            funs(as.Date(., format = "%m/%d/%Y")))
+# kcha_2017_full <- kcha_2017_full %>%
+#   mutate_at(vars(h2b, h2h, starts_with("h3e")),
+#             funs(as.Date(., format = "%m/%d/%Y")))
 
 
 # Keep all SSNs as characters for now (older data all characters with fread)
 kcha_2016_full <- kcha_2016_full %>%
   mutate_at(vars(starts_with("h3n")), funs(as.character(.)))
-kcha_2017_full <- kcha_2017_full %>%
-  mutate_at(vars(starts_with("h3n")), funs(as.character(.)))
+# kcha_2017_full <- kcha_2017_full %>%
+#   mutate_at(vars(starts_with("h3n")), funs(as.character(.)))
 
 
 # A few other vars are character only in older data
@@ -192,9 +194,8 @@ kcha_2004_2015_full <- kcha_2004_2015_full %>%
   mutate_at(vars(h20b, h20d, h21b, h21e, h21i, h21j, h21k, h21n, h21p),
             funs(as.numeric(.)))
 
-
 # The city variable seems misnamed in 2016 data (ok in 2017)
-kcha_2016_full <- kcha_2016_full %>% rename(h5a3 = h5a2)
+# kcha_2016_full <- kcha_2016_full %>% rename(h5a3 = h5a2) # There are now 2 columns with the same name
 
 
 # Fix up some inconsistent naming in income fields of <2015 data
@@ -208,16 +209,17 @@ kcha_2004_2015_full <- kcha_2004_2015_full %>%
          h19a14b = h1914b, h19a15b = h1915b, h19a16b = h1916b)
 
 # Fix up an inconsitent name in the 2017 data
-kcha_2017_full <- kcha_2017_full %>% rename(spec_vouch = spec_voucher)
+# kcha_2017_full <- kcha_2017_full %>% rename(spec_vouch = spec_voucher)
 
 
 # Add source field to track where each row came from
 kcha_2004_2015_full <- kcha_2004_2015_full %>% mutate(kcha_source = "kcha2015")
 kcha_2016_full <- kcha_2016_full %>% mutate(kcha_source = "kcha2016")
-kcha_2017_full <- kcha_2017_full %>% mutate(kcha_source = "kcha2017")
+
+#kcha_2017_full <- kcha_2017_full %>% mutate(kcha_source = "kcha2017")
 
 ### Append latest extract
-kcha <- bind_rows(kcha_2004_2015_full, kcha_2016_full, kcha_2017_full)
+kcha <- bind_rows(kcha_2004_2015_full, kcha_2016_full) #, kcha_2017_full)
 
 
 #### Remove temporary files ####
@@ -461,13 +463,14 @@ names <- names %>%
   )
 colnames(kcha) <- names[,1]
 
+
 # Remove temporary data
 rm(names)
 
 
 # Using an apply process over reshape due to memory issues
 # Make function to save space
-reshape_f <- function(df, min = 1, max = 14) {
+reshape_f <- function(df, min = 1, max = 12) {
   
   # Set up number of people in the data, ensure leading zero with sprintf
   digits <- max(2, nchar(max))
@@ -483,7 +486,7 @@ reshape_f <- function(df, min = 1, max = 14) {
              subsidy_id,
              vouch_num,
              certificationid,
-             h3a = paste0("h3a", x), # not reliable so make own member number
+             h3a = paste0("h3a", x), # these have 12
              h3b = paste0("h3b", x),
              h3c = paste0("h3c", x),
              h3d = paste0("h3d", x),
@@ -499,7 +502,7 @@ reshape_f <- function(df, min = 1, max = 14) {
              h3k5 = paste0("h3k5", x),
              h3m = paste0("h3m", x),
              h3n = paste0("h3n", x),
-             h19a1 = paste0("h19a1", x),
+             h19a1 = paste0("h19a1", x), #these have 14 members
              h19a2 = paste0("h19a2", x),
              h19b = paste0("h19b", x),
              h19d = paste0("h19d", x),
@@ -532,7 +535,7 @@ reshape_f <- function(df, min = 1, max = 14) {
   return(long_full)
 }
 
-kcha_long <- reshape_f(df = kcha, min = 1, max = 14)
+kcha_long <- reshape_f(df = kcha, min = 1, max = 12) ###Unknown column 
 
 
 # Get rid of white space (focus on variables used to filter first to save memory)
@@ -625,7 +628,7 @@ kcha_long <- kcha_long %>%
 #### Join with property lists ####
 ### Public housing
 # Bring in data and rename variables
-kcha_portfolio_codes <- read.xlsx(file.path(kcha_path, "Property list with project code_received_2017-07-26.xlsx"))
+kcha_portfolio_codes <- read.xlsx(file.path(kcha_path, "Property_List_with_Project_Code.xlsx"))
 kcha_portfolio_codes <- setnames(kcha_portfolio_codes, 
                                  fields$PHSKC[match(names(kcha_portfolio_codes), 
                                                     fields$KCHA_modified)])
@@ -675,20 +678,20 @@ kcha_long <- kcha_long %>% distinct()
 
 ##### WRITE RESHAPED DATA TO SQL #####
 # May need to delete table first if data structure and columns have changed
-dbRemoveTable(db.apde51, name = "kcha_reshaped")
-dbWriteTable(db.apde51, name = "kcha_reshaped", 
-             value = as.data.frame(kcha_long), overwrite = T,
-             field.types = c(
-               act_date = "date",
-               admit_date = "date",
-               dob = "date",
-               hh_dob = "date"
-             ))
+#dbRemoveTable(db.apde51, name = "kcha_reshaped")
+#dbWriteTable(db.apde51, name = "kcha_reshaped", 
+#             value = as.data.frame(kcha_long), overwrite = T,
+#             field.types = c(
+#               act_date = "date",
+#               admit_date = "date",
+#               dob = "date",
+#               hh_dob = "date"
+#             ))
 
 ##### Remove temporary files #####
-rm(list = c("fields", "reshape_f", "kcha_path"))
-rm(hhold_size)
-rm(kcha_portfolio_codes)
-rm(kcha)
-gc()
+#rm(list = c("fields", "reshape_f", "kcha_path"))
+#rm(hhold_size)
+#rm(kcha_portfolio_codes)
+#rm(kcha)
+#gc()
 
