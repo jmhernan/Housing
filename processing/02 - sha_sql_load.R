@@ -24,75 +24,85 @@
 ###############################################################################
 
 #### Set up global parameter and call in libraries ####
-options(max.print = 350, tibble.print_max = 50, scipen = 999)
+options(max.print = 350, tibble.print_max = 50, scipen = 999, width = 150)
 
+library(colorout) # for colorizing output in Mac terminal devtools::install_github("jalvesaq/colorout")
 library(housing) # contains many useful functions for cleaning
-library(odbc) # Used to connect to SQL server
+#library(odbc) # Used to connect to SQL server
 library(openxlsx) # Used to import/export Excel files
 library(data.table) # Used to read in csv files more efficiently
 library(tidyverse) # Used to manipulate data
 
-sha_path <- "//phdata01/DROF_DATA/DOH DATA/Housing/SHA"
-db.apde51 <- dbConnect(odbc(), "PH_APDEStore51")
+sha_path <- "//home/ubuntu/data/SHA"
+#db.apde51 <- dbConnect(odbc(), "PH_APDEStore51")
 
 
 #### Bring in data ####
 sha3a_new <- fread(file = 
-                     file.path(sha_path, "Original",
-                               "3a_PH 2012-current Yardi 50058 Data_2018-04-20.csv"), 
+                     file.path(sha_path,
+                               "3.a_HH PublicHousing 2012 to Current- (Yardi) 50058 Data_2017-03-31.csv"), 
                    na.strings = c("NA", " ", "", "NULL", "N/A"),
                    stringsAsFactors = F)
-sha3b_new <- fread(file = file.path(sha_path, "Original",
-                                       "3b_PH income 2012-current Yardi 50058_2018-04-20.csv"), 
+                   
+sha3b_new <- fread(file = file.path(sha_path,
+                                "3.b_Income Assets PublicHousing 2012 to 2015- (Yardi) 50058 Data_2017-03-31.csv"), 
                    na.strings = c("NA", " ", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
-sha5a_new <- fread(file = file.path(sha_path, "Original",
-                                       "5a_HCV 2006-current Elite 50058_2018-04-20.csv"), 
+
+sha5a_new <- fread(file = file.path(sha_path,
+                                "5.a_HH HCV 2006 to Current- (Elite) 50058 Data_2017-03-31.csv"), 
                    na.strings = c("NA", " ", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
-sha5b_new <- fread(file = file.path(sha_path, "Original",
-                                       "5b_HCV income 2006-current Elite 50058_2018-04-20.csv"),
+
+sha5b_new <- fread(file = file.path(sha_path,
+                                "5.b_Income Assets HCV 2006 to Current- (Elite) 50058 Data_2017-03-31.csv"),
                    na.strings = c("NA", " ", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
 
 
 # Bring in suffix corrected SHA data
-sha1a <- fread(file = file.path(sha_path, "SuffixCorrected",
-                                   "1a_PH 2004-2006_MLS 50058_2016-05-11.csv"), 
+sha1a <- fread(file = file.path(sha_path,
+                                   "1.a_HH PublicHousing 2004 to 2006 - (MLS) 50058 Data_2016-05-11.csv"), 
                na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
-sha1b <- fread(file = file.path(sha_path, "SuffixCorrected",
-                                   "1b_PH income 2004-2006_MLS 50058_2016-02-16.csv"),
+
+sha1b <- fread(file = file.path(sha_path,
+                                   "1.b_Income PublicHousing 2004 to 2006 - (MLS) 50058 Data_2016-02-16.csv"),
                na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
-sha1c <- fread(file = file.path(sha_path, "SuffixCorrected",
-                                   "1c_PH assets 2004-2006_MLS 50058_2016-02-16.csv"),
+
+sha1c <- fread(file = file.path(sha_path,
+                                   "1.c_Assets PublicHousing 2004 to 2006 - (MLS) 50058 Data_2016-02-16.csv"),
                na.strings = c("NA", " ", "", "NULL", "N/A"), stringsAsFactors = F)
-sha2a <- fread(file = file.path(sha_path, "SuffixCorrected",
-                                   "2a_PH 2007-2012_MLS 50058_2016-05-11.csv"),
+
+sha2a <- fread(file = file.path(sha_path,
+                                   "2.a_HH PublicHousing 2007 to 2012 -(MLS) 50058 Data_2016-05-11.csv"),
                na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
-sha2b <- fread(file = file.path(sha_path, "SuffixCorrected",
-                                   "2b_PH income 2007-2012_MLS 50058_2016-02-16.csv"),
+
+sha2b <- fread(file = file.path(sha_path,
+                                   "2.b_Income PublicHousing 2007 to 2012 - (MLS) 50058 Data_2016-02-16.csv"),
                na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
-sha2c <- fread(file = file.path(sha_path, "SuffixCorrected",
-                                   "2c_PH assets 2007-2012_MLS 50058_2016-02-16.csv"),
+
+sha2c <- fread(file = file.path(sha_path,
+                                   "2.c_Assets PublicHousing 2007 to 2012 - (MLS) 50058 Data_2016-02-16.csv"),
                   na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
-sha4a <- fread(file = file.path(sha_path, "SuffixCorrected",
-                                   "4_HCV 2004-2006_MLS 50058_2016-05-25.csv"),
+
+sha4a <- fread(file = file.path(sha_path,
+                                   "4_HCV 2004 to 2006 - (MLS) 50058 Data_2016-05-25.csv"),
                   na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 
 
 # Bring in voucher data
 sha_prog_codes <- read.xlsx(file.path(
-  sha_path, "Original", "Program codes and portfolios_2018-01-26.xlsx"), 2)
+  sha_path, "Program Codes & Portfolios_November_Updates.xlsx"), 2)
 
 # Bring in portfolio codes
 sha_portfolio_codes  <- read.xlsx(file.path(
-  sha_path, "Original", "Program codes and portfolios_2018-01-26.xlsx"), 1)
+  sha_path, "Program Codes & Portfolios_November_Updates.xlsx"), 1)
 
 
 #### PREP DATA SETS FOR JOINING ####
@@ -163,7 +173,8 @@ sha_prog_codes <- setnames(sha_prog_codes,
                            fields$PHSKC[match(names(sha_prog_codes), 
                                               fields$SHA_prog_port_codes)])
 
-
+sha1c$asset_val <- as.numeric(sha1c$asset_val)
+sha2c$asset_val <- as.numeric(sha2c$asset_val)
 
 #### INCOME SECTIONS ####
 # Need to do the following:
@@ -309,7 +320,7 @@ inc_clean_f <- function(df) {
 # Make list of data frames with income or asset variables
 dfs_inc <- list(sha1b = sha1b, sha1c = sha1c, sha2b = sha2b, sha2c = sha2c, 
                 sha3b_new = sha3b_new, sha5b_new = sha5b_new)
-
+                
 # Apply function to all relevant data frames (takes a few minutes to run)
 income_assets <- lapply(dfs_inc, inc_clean_f)
 
