@@ -27,8 +27,8 @@
 options(max.print = 400, tibble.print_max = 50, scipen = 999)
 
 library(housing) # contains many useful functions for cleaning
-library(odbc) # Used to connect to SQL server
-library(openxlsx) # Used to import/export Excel files
+#library(odbc) # Used to connect to SQL server
+#library(openxlsx) # Used to import/export Excel files
 library(data.table) # Used to read in csv files more efficiently
 library(tidyverse) # Used to manipulate data
 library(readxl)
