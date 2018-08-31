@@ -97,7 +97,6 @@ sha4a <- fread(file = file.path(sha_path,
 
 
 # Bring in voucher data
-# Bring in voucher data
 sha_vouch_type <- read.xlsx(file.path(sha_path, "HCV Voucher Type.xlsx"))
 
 sha_prog_codes <- read.xlsx(file.path(
@@ -194,156 +193,156 @@ sha_vouch_type <- data.table::setnames(sha_vouch_type, fields$PHSKC[match(names(
 # 3) Summarize income/assets for a given time point to reduce duplicated rows
 
 ### Function to do this across various income/asset data frames
-inc_clean_f <- function(df) {
-  ### Print message to show code is working
-  message("Working on list item")
+# inc_clean_f <- function(df) {
+#   ### Print message to show code is working
+#   message("Working on list item")
   
-  ### Tidy up income fields and recode
-  if("inc_code" %in% names(df)) {
-    df <- df %>%
-      mutate(inc_code = 
-               car::recode(inc_code, 
-                           "'Annual imputed welfare income' = 'IW'; 
-                           'Child Support' = 'C';'Federal Wage' = 'F'; 
-                           'General Assistance' = 'G'; 
-                           'Indian Trust/Per Capita' = 'I'; 
-                           'Medical reimbursement' = 'E'; 'Military Pay' = 'M'; 
-                           'MTW Income' = 'X'; 'NULL' = NA; 
-                           'Other NonWage Sources' = 'N'; 'Other Wage' = 'W'; 
-                           'Own Business' = 'B'; 'Pension' = 'P'; 
-                           'PHA Wage' = 'HA'; 'Social Security' = 'SS'; 
-                           'SSI' = 'S'; 'TANF (formerly AFDC)' = 'T';
-                           'Unemployment Benefits' = 'U'; '' = NA"),
-             inc_fixed_temp = ifelse(
-               inc_code %in% c("P", "S", "SS"), 1, 0))
-  }
+#   ### Tidy up income fields and recode
+#   if("inc_code" %in% names(df)) {
+#     df <- df %>%
+#       mutate(inc_code = 
+#                car::recode(inc_code, 
+#                            "'Annual imputed welfare income' = 'IW'; 
+#                            'Child Support' = 'C';'Federal Wage' = 'F'; 
+#                            'General Assistance' = 'G'; 
+#                            'Indian Trust/Per Capita' = 'I'; 
+#                            'Medical reimbursement' = 'E'; 'Military Pay' = 'M'; 
+#                            'MTW Income' = 'X'; 'NULL' = NA; 
+#                            'Other NonWage Sources' = 'N'; 'Other Wage' = 'W'; 
+#                            'Own Business' = 'B'; 'Pension' = 'P'; 
+#                            'PHA Wage' = 'HA'; 'Social Security' = 'SS'; 
+#                            'SSI' = 'S'; 'TANF (formerly AFDC)' = 'T';
+#                            'Unemployment Benefits' = 'U'; '' = NA"),
+#              inc_fixed_temp = ifelse(
+#                inc_code %in% c("P", "S", "SS"), 1, 0))
+#   }
   
-  ### Summarize income and assets differently depending on data format
-  # Tested out summarise instead of mutate in first part. No faster.
-  # Still need ways to optimize this code
-  if ("mbr_id" %in% names(df)) {
-    df_inc <- df %>%
-      distinct(cert_id, mbr_id, increment, inc_code, 
-               inc, inc_excl, inc_adj, inc_fixed_temp) %>%
-    group_by(cert_id, mbr_id, increment) %>%
-      summarise(
-        inc = sum(inc, na.rm = T), 
-        inc_excl = sum(inc_excl, na.rm = T),
-        inc_adj = sum(inc_adj, na.rm = T),
-        inc_fixed = min(inc_fixed_temp, na.rm = T)) %>%
-      group_by(cert_id) %>%
-      mutate(
-        hh_inc = sum(inc, na.rm = T), 
-        hh_inc_excl = sum(inc_excl, na.rm = T),
-        hh_inc_adj = sum(inc_adj, na.rm = T)) %>%
-      ungroup()
+#   ### Summarize income and assets differently depending on data format
+#   # Tested out summarise instead of mutate in first part. No faster.
+#   # Still need ways to optimize this code
+#   if ("mbr_id" %in% names(df)) {
+#     df_inc <- df %>%
+#       distinct(cert_id, mbr_id, increment, inc_code, 
+#                inc, inc_excl, inc_adj, inc_fixed_temp) %>%
+#     group_by(cert_id, mbr_id, increment) %>%
+#       summarise(
+#         inc = sum(inc, na.rm = T), 
+#         inc_excl = sum(inc_excl, na.rm = T),
+#         inc_adj = sum(inc_adj, na.rm = T),
+#         inc_fixed = min(inc_fixed_temp, na.rm = T)) %>%
+#       group_by(cert_id) %>%
+#       mutate(
+#         hh_inc = sum(inc, na.rm = T), 
+#         hh_inc_excl = sum(inc_excl, na.rm = T),
+#         hh_inc_adj = sum(inc_adj, na.rm = T)) %>%
+#       ungroup()
 
-    df_ass <- df %>%
-      distinct(cert_id, mbr_id, increment, asset_type, asset_val, asset_inc) %>%
-      group_by(cert_id, mbr_id, increment) %>%
-      summarise(
-        asset_val = sum(asset_val, na.rm = T), 
-        asset_inc = sum(asset_inc, na.rm = T)) %>%
-      group_by(cert_id) %>%
-      mutate(
-        hh_asset_val = sum(asset_val, na.rm = T), 
-        hh_asset_inc = sum(asset_inc, na.rm = T)) %>%
-      ungroup()
+#     df_ass <- df %>%
+#       distinct(cert_id, mbr_id, increment, asset_type, asset_val, asset_inc) %>%
+#       group_by(cert_id, mbr_id, increment) %>%
+#       summarise(
+#         asset_val = sum(asset_val, na.rm = T), 
+#         asset_inc = sum(asset_inc, na.rm = T)) %>%
+#       group_by(cert_id) %>%
+#       mutate(
+#         hh_asset_val = sum(asset_val, na.rm = T), 
+#         hh_asset_inc = sum(asset_inc, na.rm = T)) %>%
+#       ungroup()
     
-    df <- left_join(df_inc, df_ass, by = c("cert_id", "mbr_id", "increment"))
+#     df <- left_join(df_inc, df_ass, by = c("cert_id", "mbr_id", "increment"))
     
-  } else if ("incasset_id" %in% names(df) & "inc_mbr_num" %in% names(df)) {
-    if ("inc" %in% names(df) & !("asset_val" %in% names(df))) {
-      df <- df %>%
-        group_by(incasset_id, inc_mbr_num) %>%
-        mutate(
-          inc = sum(inc, na.rm = T), 
-          inc_excl = sum(inc_excl, na.rm = T),
-          inc_adj = sum(inc_adj, na.rm = T),
-          inc_fixed = min(inc_fixed_temp, na.rm = T)) %>%
-        ungroup() %>%
-        select(-inc_fixed_temp, -inc_code) %>%
-        distinct() %>%
-        group_by(incasset_id) %>%
-        mutate(
-          hh_inc = sum(inc, na.rm = T), 
-          hh_inc_excl = sum(inc_excl, na.rm = T),
-          hh_inc_adj = sum(inc_adj, na.rm = T)) %>%
-        ungroup()
-    }
-    if (!("inc" %in% names(df)) & "asset_val" %in% names(df)) {
-      df <- df %>%
-        group_by(incasset_id, inc_mbr_num) %>%
-        mutate(
-          asset_val = sum(asset_val, na.rm = T), 
-          asset_inc = sum(asset_inc, na.rm = T)
-        ) %>%
-        ungroup() %>%
-        select(-asset_type) %>%
-        distinct() %>%
-        group_by(incasset_id) %>%
-        mutate(
-          hh_asset_val = sum(asset_val, na.rm = T), 
-          hh_asset_inc = sum(asset_inc, na.rm = T)
-        ) %>%
-          ungroup()
-    }
-    if ("inc" %in% names(df) & "asset_val" %in% names(df)) {
-      df <- df %>%
-        group_by(incasset_id, inc_mbr_num) %>%
-        mutate(
-          inc = sum(inc, na.rm = T), 
-          inc_excl = sum(inc_excl, na.rm = T),
-          inc_adj = sum(inc_adj, na.rm = T),
-          inc_fixed = min(inc_fixed_temp, na.rm = T),
-          asset_val = sum(asset_val, na.rm = T), 
-          asset_inc = sum(asset_inc, na.rm = T)
-        ) %>%
-        ungroup() %>%
-        select(-inc_fixed_temp, -inc_code, -asset_type) %>%
-        distinct() %>%
-        group_by(incasset_id) %>%
-        mutate(
-          hh_inc = sum(inc, na.rm = T), 
-          hh_inc_excl = sum(inc_excl, na.rm = T),
-          hh_inc_adj = sum(inc_adj, na.rm = T),
-          hh_asset_val = sum(asset_val, na.rm = T), 
-          hh_asset_inc = sum(asset_inc, na.rm = T)
-        ) %>%
-        ungroup()
-    }
-  } else if ("incasset_id" %in% names(df) & !("inc_mbr_num" %in% names(df))) {
-    df <- df %>%
-      group_by(incasset_id) %>%
-      mutate(hh_asset_val = sum(asset_val, na.rm = T),
-             hh_asset_inc = sum(asset_inc, na.rm = T)) %>%
-      ungroup() %>%
-      select(-asset_type, -asset_val, -asset_inc) %>%
-      distinct()
-  } else {
-    stop("No valid grouping variables")
-  }
+#   } else if ("incasset_id" %in% names(df) & "inc_mbr_num" %in% names(df)) {
+#     if ("inc" %in% names(df) & !("asset_val" %in% names(df))) {
+#       df <- df %>%
+#         group_by(incasset_id, inc_mbr_num) %>%
+#         mutate(
+#           inc = sum(inc, na.rm = T), 
+#           inc_excl = sum(inc_excl, na.rm = T),
+#           inc_adj = sum(inc_adj, na.rm = T),
+#           inc_fixed = min(inc_fixed_temp, na.rm = T)) %>%
+#         ungroup() %>%
+#         select(-inc_fixed_temp, -inc_code) %>%
+#         distinct() %>%
+#         group_by(incasset_id) %>%
+#         mutate(
+#           hh_inc = sum(inc, na.rm = T), 
+#           hh_inc_excl = sum(inc_excl, na.rm = T),
+#           hh_inc_adj = sum(inc_adj, na.rm = T)) %>%
+#         ungroup()
+#     }
+#     if (!("inc" %in% names(df)) & "asset_val" %in% names(df)) {
+#       df <- df %>%
+#         group_by(incasset_id, inc_mbr_num) %>%
+#         mutate(
+#           asset_val = sum(asset_val, na.rm = T), 
+#           asset_inc = sum(asset_inc, na.rm = T)
+#         ) %>%
+#         ungroup() %>%
+#         select(-asset_type) %>%
+#         distinct() %>%
+#         group_by(incasset_id) %>%
+#         mutate(
+#           hh_asset_val = sum(asset_val, na.rm = T), 
+#           hh_asset_inc = sum(asset_inc, na.rm = T)
+#         ) %>%
+#           ungroup()
+#     }
+#     if ("inc" %in% names(df) & "asset_val" %in% names(df)) {
+#       df <- df %>%
+#         group_by(incasset_id, inc_mbr_num) %>%
+#         mutate(
+#           inc = sum(inc, na.rm = T), 
+#           inc_excl = sum(inc_excl, na.rm = T),
+#           inc_adj = sum(inc_adj, na.rm = T),
+#           inc_fixed = min(inc_fixed_temp, na.rm = T),
+#           asset_val = sum(asset_val, na.rm = T), 
+#           asset_inc = sum(asset_inc, na.rm = T)
+#         ) %>%
+#         ungroup() %>%
+#         select(-inc_fixed_temp, -inc_code, -asset_type) %>%
+#         distinct() %>%
+#         group_by(incasset_id) %>%
+#         mutate(
+#           hh_inc = sum(inc, na.rm = T), 
+#           hh_inc_excl = sum(inc_excl, na.rm = T),
+#           hh_inc_adj = sum(inc_adj, na.rm = T),
+#           hh_asset_val = sum(asset_val, na.rm = T), 
+#           hh_asset_inc = sum(asset_inc, na.rm = T)
+#         ) %>%
+#         ungroup()
+#     }
+#   } else if ("incasset_id" %in% names(df) & !("inc_mbr_num" %in% names(df))) {
+#     df <- df %>%
+#       group_by(incasset_id) %>%
+#       mutate(hh_asset_val = sum(asset_val, na.rm = T),
+#              hh_asset_inc = sum(asset_inc, na.rm = T)) %>%
+#       ungroup() %>%
+#       select(-asset_type, -asset_val, -asset_inc) %>%
+#       distinct()
+#   } else {
+#     stop("No valid grouping variables")
+#   }
   
-  return(df)
+#   return(df)
   
-}
+# }
 
-# Make list of data frames with income or asset variables
-dfs_inc <- list(sha1b = sha1b, sha1c = sha1c, sha2b = sha2b, sha2c = sha2c, 
-                sha3b_new = sha3b_new, sha5b_new = sha5b_new)
+# # Make list of data frames with income or asset variables
+# dfs_inc <- list(sha1b = sha1b, sha1c = sha1c, sha2b = sha2b, sha2c = sha2c, 
+#                 sha3b_new = sha3b_new, sha5b_new = sha5b_new)
 
-test <- function(df) {
-  if ("mbr_id" %in% names(df))
-    print(names(df))
-}
-lapply(dfs_inc, test)
-# Apply function to all relevant data frames (takes a few minutes to run)
-income_assets <- lapply(dfs_inc, inc_clean_f)
+# test <- function(df) {
+#   if ("mbr_id" %in% names(df))
+#     print(names(df))
+# }
+# lapply(dfs_inc, test)
+# # Apply function to all relevant data frames (takes a few minutes to run)
+# income_assets <- lapply(dfs_inc, inc_clean_f)
 
-# Bring back data frames from list
-list2env(income_assets, .GlobalEnv)
-rm(dfs_inc)
-rm(income_assets)
+# # Bring back data frames from list
+# list2env(income_assets, .GlobalEnv)
+# rm(dfs_inc)
+# rm(income_assets)
 
 
 #### JOIN PUBLIC HOUSING FILES ####
@@ -567,51 +566,51 @@ sha <- bind_rows(sha_ph, sha_hcv)
 # fill in gaps (rather than mutate, which is slow)
 # Data recorded in the HH fields do not add up to the calculated HH income
 # Need to standardize, calculated data seems more accurate
-hh_inc_y <- sha %>%
-  filter(!is.na(hh_inc.y)) %>%
-  group_by(incasset_id, cert_id, increment) %>%
-  summarise(hh_inc.y = max(hh_inc.y, na.rm = T)) %>%
-  ungroup()
+# hh_inc_y <- sha %>%
+#   filter(!is.na(hh_inc.y)) %>%
+#   group_by(incasset_id, cert_id, increment) %>%
+#   summarise(hh_inc.y = max(hh_inc.y, na.rm = T)) %>%
+#   ungroup()
 
-hh_inc_adj_y <- sha %>%
-  filter(!is.na(hh_inc.y)) %>%
-  group_by(incasset_id, cert_id, increment) %>%
-  summarise(hh_inc_adj.y = max(hh_inc_adj.y, na.rm = T)) %>%
-  ungroup()
+# hh_inc_adj_y <- sha %>%
+#   filter(!is.na(hh_inc.y)) %>%
+#   group_by(incasset_id, cert_id, increment) %>%
+#   summarise(hh_inc_adj.y = max(hh_inc_adj.y, na.rm = T)) %>%
+#   ungroup()
 
 
-sha <- left_join(sha, hh_inc_y, by = c("incasset_id", "cert_id", "increment"))
-sha <- left_join(sha, hh_inc_adj_y, by = c("incasset_id", "cert_id", "increment"))
+# sha <- left_join(sha, hh_inc_y, by = c("incasset_id", "cert_id", "increment"))
+# sha <- left_join(sha, hh_inc_adj_y, by = c("incasset_id", "cert_id", "increment"))
 
-# Now replace all NAs with 0 (came from joins where no income available)
-sha <- sha %>%
-  mutate_at(vars(contains("inc"), contains("asset")),
-            funs(ifelse(is.na(.), 0, .)))
+# # Now replace all NAs with 0 (came from joins where no income available)
+# sha <- sha %>%
+#   mutate_at(vars(contains("inc"), contains("asset")),
+#             funs(ifelse(is.na(.), 0, .)))
 
-sha <- sha %>%
-  mutate(
-    hh_inc = case_when(
-      sha_source %in% c("sha4", "sha5") ~ as.numeric(hh_inc),
-      sha_source %in% c("sha1", "sha2", "sha3") ~ as.numeric(hh_inc.y.y)
-      ),
-    hh_inc_adj = hh_inc_adj.y.y,
-    hh_asset_val = case_when(
-      sha_source %in% c("sha1", "sha2", "sha4") ~ as.numeric(hh_asset_inc),
-      sha_source %in% c("sha3", "sha5") ~ as.numeric(hh_asset_val.y)
-    ),
-    hh_asset_inc = case_when(
-      sha_source %in% c("sha1", "sha2", "sha4") ~ as.numeric(hh_asset_inc),
-      sha_source %in% c("sha3", "sha5") ~ as.numeric(hh_asset_inc.y)
-    )
-  ) %>%
-  select(-(contains(".x")), -(contains(".y"))) %>%
-  # Remake household totals to overwrite what was read in
-  mutate(hh_asset_inc_final = max(hh_asset_inc, hh_asset_impute, na.rm = T),
-         hh_inc_tot = hh_inc_adj + hh_asset_inc_final,
-         hh_inc_tot_adj = case_when(
-           is.na(hh_inc_deduct) ~ hh_inc_tot,
-           !is.na(hh_inc_deduct) ~ hh_inc_tot - hh_inc_deduct
-         ))
+# sha <- sha %>%
+#   mutate(
+#     hh_inc = case_when(
+#       sha_source %in% c("sha4", "sha5") ~ as.numeric(hh_inc),
+#       sha_source %in% c("sha1", "sha2", "sha3") ~ as.numeric(hh_inc.y.y)
+#       ),
+#     hh_inc_adj = hh_inc_adj.y.y,
+#     hh_asset_val = case_when(
+#       sha_source %in% c("sha1", "sha2", "sha4") ~ as.numeric(hh_asset_inc),
+#       sha_source %in% c("sha3", "sha5") ~ as.numeric(hh_asset_val.y)
+#     ),
+#     hh_asset_inc = case_when(
+#       sha_source %in% c("sha1", "sha2", "sha4") ~ as.numeric(hh_asset_inc),
+#       sha_source %in% c("sha3", "sha5") ~ as.numeric(hh_asset_inc.y)
+#     )
+#   ) %>%
+#   select(-(contains(".x")), -(contains(".y"))) %>%
+#   # Remake household totals to overwrite what was read in
+#   mutate(hh_asset_inc_final = max(hh_asset_inc, hh_asset_impute, na.rm = T),
+#          hh_inc_tot = hh_inc_adj + hh_asset_inc_final,
+#          hh_inc_tot_adj = case_when(
+#            is.na(hh_inc_deduct) ~ hh_inc_tot,
+#            !is.na(hh_inc_deduct) ~ hh_inc_tot - hh_inc_deduct
+#          ))
 
 ### Tidy up income fields and consolidate
 sha <- sha %>%
@@ -812,5 +811,11 @@ rm(list = ls(pattern = "sha4"))
 rm(list = ls(pattern = "sha5"))
 rm(list = ls(pattern = "sha_"))
 rm(fields)
+rm(hhold_size)
+rm(kcha)
+rm(kcha_path)
+rm(reshape_f)
+
 gc()
 
+ls()
