@@ -25,34 +25,46 @@
 
 #### Set up global parameter and call in libraries ####
 library(housing) # contains many useful functions for cleaning
-library(odbc) # Used to connect to SQL server
+#library(odbc) # Used to connect to SQL server
 library(data.table) # Used to read in csv files more efficiently
 library(tidyverse) # Used to manipulate data
 
-options(max.print = 400, tibble.print_max = 50, scipen = 999)
-housing_path <- "//phdata01/DROF_DATA/DOH DATA/Housing"
-db.apde51 <- dbConnect(odbc(), "PH_APDEStore51")
+options(max.print = 400, tibble.print_max = 50, scipen = 999, width = 150)
+housing_path <- "~/data/Housing/OrganizedData/"
+#db.apde51 <- dbConnect(odbc(), "PH_APDEStore51")
 
 
 #### Bring in data ####
+# sha <- fread(file = file.path(housing_path, sha), 
+#                            drop = 1, 
+#                            stringsAsFactors = F,
+#                            colClasses = list(character = c()))
+
+# kcha_long <- fread(file = file.path(housing_path, kcha_long), 
+#                            drop = 1, 
+#                            stringsAsFactors = F,
+#                            colClasses = list(character = c()))
 # This takes ~60 seconds
-system.time(sha <- DBI::dbReadTable(db.apde51, "sha_combined"))
+#system.time(sha <- DBI::dbReadTable(db.apde51, "sha_combined"))
 
 # This takes ~35 seconds
-system.time(kcha_long <- DBI::dbReadTable(db.apde51, "kcha_reshaped"))
+#system.time(kcha_long <- DBI::dbReadTable(db.apde51, "kcha_reshaped"))
 
 
 #### Fix up variable formats ####
-sha <- date_ymd_f(sha, act_date, admit_date, dob, reexam_date, 
-                  mtw_admit_date, move_in_date)
-sha <- sha %>% mutate(bdrm_voucher = as.numeric(bdrm_voucher))
+sha <- date_ymd_f(sha, act_date, admit_date, dob, reexam_date)
+
+sha <- sha %>% mutate(bdrm_voucher = as.numeric(bdrm_voucher),
+                      unit_zip = as.numeric(unit_zip))
 
 kcha_long <- date_ymd_f(kcha_long, act_date, admit_date, dob, hh_dob)
+kcha_long <- yesno_f(kcha_long, ph_rent_ceiling, tb_rent_ceiling, disability)
+kcha_long <- char_f(kcha_long, property_id)
 
 
 #### Make variable to track where data came from ####
-sha <- mutate(sha, agency_new = "SHA")
-kcha_long <- mutate(kcha_long, agency_new = "KCHA")
+sha <- sha %>% mutate(agency_new = "SHA")
+kcha_long <- kcha_long %>% mutate(agency_new = "KCHA")
 
 
 #### Append data ####
@@ -65,7 +77,7 @@ pha <- trim_f(pha, relcode, unit_add, unit_apt, unit_apt2,
               unit_city, unit_state, contains("name"), 
               prog_type, vouch_type, property_name, 
               property_type, portfolio, cost_pha)
-
+# pha <- gdata::trim(pha)
 
 ### Fix up inconsistent capitalization in key variables
 # Change names to be consistently upper case
@@ -213,6 +225,7 @@ pha_middle <- pha %>%
   group_by(ssn_new, ssn_c, mname_new) %>%
   summarise(mname_new_cnt = n()) %>%
   ungroup()
+
 pha <- left_join(pha, pha_middle, by = c("ssn_new", "ssn_c", "mname_new"))
 rm(pha_middle)
 
@@ -227,6 +240,7 @@ pha_last <- pha %>%
   mutate(lname_rec = lname_new[[1]]) %>%
   ungroup() %>%
   distinct(ssn_new, ssn_c, lname_rec)
+
 pha <- left_join(pha, pha_last, by = c("ssn_new", "ssn_c"))
 rm(pha_last)
 
@@ -255,7 +269,7 @@ pha <- pha %>%
 
 
 #### Save point ####
-saveRDS(pha, file = paste0(housing_path, "/OrganizedData/pha_combined.Rda"))
+saveRDS(pha, file = paste0(housing_path, "pha_combined_test.RData"))
 
 
 #### Clean up ####

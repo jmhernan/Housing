@@ -802,7 +802,7 @@ sha <- sha %>%
 #               dob = "date"
 #             ))
 
-
+#write.csv(sha, file = "~/data/Housing/OrganizedData/SHA.csv")
 ##### Remove temporary files #####
 rm(list = ls(pattern = "sha1"))
 rm(list = ls(pattern = "sha2"))
@@ -815,7 +815,4 @@ rm(hhold_size)
 rm(kcha)
 rm(kcha_path)
 rm(reshape_f)
-
 gc()
-
-ls()

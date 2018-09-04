@@ -26,9 +26,10 @@
 #### Set up global parameter and call in libraries ####
 options(max.print = 400, tibble.print_max = 50, scipen = 999)
 
+library(colorout) # for colorizing output in Mac terminal devtools::install_github("jalvesaq/colorout")
 library(housing) # contains many useful functions for cleaning
 #library(odbc) # Used to connect to SQL server
-#library(openxlsx) # Used to import/export Excel files
+library(openxlsx) # Used to import/export Excel files
 library(data.table) # Used to read in csv files more efficiently
 library(tidyverse) # Used to manipulate data
 library(readxl)
@@ -426,7 +427,7 @@ kcha <- kcha %>%
 kcha <- kcha %>%
   mutate_at(vars(h1a, h2h, contains("h3"), contains("h5"), contains("h19"),
                  contains("h20"), contains("h21"), hh_lname, hh_fname, 
-                 hh_mname, contains("hh_inc"), kcha_source, propertytype,
+                 hh_mname, contains("hh_inc"), kcha_source,
                  developmentname, spec_vouch),
             funs(ifelse(hh_ssn == lag(hh_ssn, 1) & eop_source == "eop" &
                           !is.na(eop_source), 
@@ -629,6 +630,7 @@ kcha_long <- kcha_long %>%
 ### Public housing
 # Bring in data and rename variables
 kcha_portfolio_codes <- read.xlsx(file.path(kcha_path, "Property_List_with_Project_Code.xlsx"))
+
 kcha_portfolio_codes <- setnames(kcha_portfolio_codes, 
                                  fields$PHSKC[match(names(kcha_portfolio_codes), 
                                                     fields$KCHA_modified)])
@@ -671,10 +673,9 @@ kcha_long <- yesno_f(kcha_long, correction, ph_rent_ceiling, disability,
                      access_unit, access_req, tb_rent_ceiling, portability,
                      r_white, r_black, r_aian, r_asian, r_nhpi)
 kcha_long <- char_f(kcha_long, property_id)
-
 kcha_long <- kcha_long %>% distinct()
 
-
+#write.csv(kcha_long, file = "~/data/Housing/OrganizedData/kcha_long.csv")
 
 ##### WRITE RESHAPED DATA TO SQL #####
 # May need to delete table first if data structure and columns have changed
