@@ -33,22 +33,15 @@ library(openxlsx) # Used to import/export Excel files
 library(data.table) # Used to read in csv files more efficiently
 library(tidyverse) # Used to manipulate data
 library(readxl)
+library(RJSONIO)
+library(RCurl)
 
-kcha_path <- "//home/ubuntu/data/KCHA"
-#db.apde51 <- dbConnect(odbc(), "PH_APDEStore51")
+script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/al_test/processing/metadata/set_data_env.r", ssl.verifypeer = FALSE)
+eval(parse(text = script))
 
-#changing data files to match
-panel_1_2004_2015_fname <- "kcha_panel_01.csv"
-panel_2_2004_2015_fname <- "kcha_panel_02.csv"
-panel_3_2004_2015_fname <- "kcha_panel_03.csv"
-panel_1_2016_fname <- "kcha_panel_01_2016.csv"
-panel_2_2016_fname <- "kcha_panel_02_2016.csv"
-panel_3_2016_fname <- "kcha_panel_03_2016.csv"
-#panel_1_2017_fname <- "kcha_panel_01_2017.csv"
-#panel_2_2017_fname <- "kcha_panel_02_2017.csv"
-#panel_3_2017_fname <- "kcha_panel_03_2017.csv"
+METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata_uw.json")
 
-kcha_eop_fname <- "EOP Certifications_received_2017-10-05.xlsx"
+set_data_envr("kcha_data")
 
 #####################################
 #### PART 1: RAW DATA PROCESSING ####

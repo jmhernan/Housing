@@ -32,6 +32,15 @@ library(housing) # contains many useful functions for cleaning
 library(openxlsx) # Used to import/export Excel files
 library(data.table) # Used to read in csv files more efficiently
 library(tidyverse) # Used to manipulate data
+library(RJSONIO)
+library(RCurl)
+
+script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/al_test/processing/metadata/set_data_env.r", ssl.verifypeer = FALSE)
+eval(parse(text = script))
+
+METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata_uw.json")
+
+set_data_envr("sha_data")
 
 sha_path <- "//home/ubuntu/data/SHA"
 #db.apde51 <- dbConnect(odbc(), "PH_APDEStore51")
@@ -831,4 +840,7 @@ rm(kcha)
 rm(kcha_path)
 rm(reshape_f)
 rm(kcha_portfolio_codes)
+rm(METADATA)      
+rm(script)        
+rm(set_data_envr)
 gc()
