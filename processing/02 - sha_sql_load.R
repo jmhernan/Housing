@@ -36,75 +36,90 @@ library(tidyverse) # Used to manipulate data
 sha_path <- "//home/ubuntu/data/SHA"
 #db.apde51 <- dbConnect(odbc(), "PH_APDEStore51")
 
+sha3a_new_fn <- "3.a_HH PublicHousing 2012 to Current- (Yardi) 50058 Data_2017-03-31.csv"
+sha3b_new_fn <- "3.b_Income Assets PublicHousing 2012 to 2015- (Yardi) 50058 Data_2017-03-31.csv"
+sha5a_new_fn <- "5.a_HH HCV 2006 to Current- (Elite) 50058 Data_2017-03-31.csv"
+sha5b_new_fn <- "5.b_Income Assets HCV 2006 to Current- (Elite) 50058 Data_2017-03-31.csv"
+# suffix corrected SHA data
+sha1a_fn <- "1.a_HH PublicHousing 2004 to 2006 - (MLS) 50058 Data_2016-05-11.csv"
+sha1b_fn <- "1.b_Income PublicHousing 2004 to 2006 - (MLS) 50058 Data_2016-02-16.csv"
+sha1c_fn <- "1.c_Assets PublicHousing 2004 to 2006 - (MLS) 50058 Data_2016-02-16.csv"
+sha2a_fn <- "2.a_HH PublicHousing 2007 to 2012 -(MLS) 50058 Data_2016-05-11.csv"
+sha2b_fn <- "2.b_Income PublicHousing 2007 to 2012 - (MLS) 50058 Data_2016-02-16.csv"
+sha2c_fn <- "2.c_Assets PublicHousing 2007 to 2012 - (MLS) 50058 Data_2016-02-16.csv"
+sha4a_fn <- "4_HCV 2004 to 2006 - (MLS) 50058 Data_2016-05-25.csv"
+# voucher data
+sha_vouch_type_fn <- "HCV Voucher Type.xlsx"
+sha_prog_codes_fn <- "Program Codes & Portfolios_November_Updates.xlsx"
 
 #### Bring in data ####
 sha3a_new <- fread(file = 
                      file.path(sha_path,
-                               "3.a_HH PublicHousing 2012 to Current- (Yardi) 50058 Data_2017-03-31.csv"), 
+                               sha3a_new_fn), 
                    na.strings = c("NA", " ", "", "NULL", "N/A"),
                    stringsAsFactors = F)
                    
 sha3b_new <- fread(file = file.path(sha_path,
-                                "3.b_Income Assets PublicHousing 2012 to 2015- (Yardi) 50058 Data_2017-03-31.csv"), 
+                                sha3b_new_fn), 
                    na.strings = c("NA", " ", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
 
 sha5a_new <- fread(file = file.path(sha_path,
-                                "5.a_HH HCV 2006 to Current- (Elite) 50058 Data_2017-03-31.csv"), 
+                                sha5a_new_fn), 
                    na.strings = c("NA", " ", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
 
 sha5b_new <- fread(file = file.path(sha_path,
-                                "5.b_Income Assets HCV 2006 to Current- (Elite) 50058 Data_2017-03-31.csv"),
+                                sha5b_new_fn),
                    na.strings = c("NA", " ", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
 
 
 # Bring in suffix corrected SHA data
 sha1a <- fread(file = file.path(sha_path,
-                                   "1.a_HH PublicHousing 2004 to 2006 - (MLS) 50058 Data_2016-05-11.csv"), 
+                                   sha1a_fn), 
                na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 
 sha1b <- fread(file = file.path(sha_path,
-                                   "1.b_Income PublicHousing 2004 to 2006 - (MLS) 50058 Data_2016-02-16.csv"),
+                                   sha1b_fn),
                na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 
 sha1c <- fread(file = file.path(sha_path,
-                                   "1.c_Assets PublicHousing 2004 to 2006 - (MLS) 50058 Data_2016-02-16.csv"),
+                                   sha1c_fn),
                na.strings = c("NA", " ", "", "NULL", "N/A"), stringsAsFactors = F)
 
 sha2a <- fread(file = file.path(sha_path,
-                                   "2.a_HH PublicHousing 2007 to 2012 -(MLS) 50058 Data_2016-05-11.csv"),
+                                   sha2a_fn),
                na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 
 sha2b <- fread(file = file.path(sha_path,
-                                   "2.b_Income PublicHousing 2007 to 2012 - (MLS) 50058 Data_2016-02-16.csv"),
+                                   sha2b_fn),
                na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 
 sha2c <- fread(file = file.path(sha_path,
-                                   "2.c_Assets PublicHousing 2007 to 2012 - (MLS) 50058 Data_2016-02-16.csv"),
+                                   sha2c_fn),
                   na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 
 sha4a <- fread(file = file.path(sha_path,
-                                   "4_HCV 2004 to 2006 - (MLS) 50058 Data_2016-05-25.csv"),
+                                   sha4a_fn),
                   na.strings = c("NA", " ", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 
 
 # Bring in voucher data
-sha_vouch_type <- read.xlsx(file.path(sha_path, "HCV Voucher Type.xlsx"))
+sha_vouch_type <- read.xlsx(file.path(sha_path, sha_vouch_type_fn))
 
 sha_prog_codes <- read.xlsx(file.path(
-  sha_path, "Program Codes & Portfolios_November_Updates.xlsx"), 2)
+  sha_path, sha_prog_codes_fn), 2)
 
 # Bring in portfolio codes
 sha_portfolio_codes  <- read.xlsx(file.path(
-  sha_path, "Program Codes & Portfolios_November_Updates.xlsx"), 1)
+  sha_path, sha_prog_codes_fn), 1)
 
 
 #### PREP DATA SETS FOR JOINING ####
@@ -815,4 +830,5 @@ rm(hhold_size)
 rm(kcha)
 rm(kcha_path)
 rm(reshape_f)
+rm(kcha_portfolio_codes)
 gc()
