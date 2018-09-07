@@ -36,7 +36,7 @@ library(readxl)
 library(RJSONIO)
 library(RCurl)
 
-script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/al_test/processing/metadata/set_data_env.r", ssl.verifypeer = FALSE)
+script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/al_test/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
 METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata_uw.json")
