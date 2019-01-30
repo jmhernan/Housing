@@ -30,10 +30,12 @@ library(housing) # contains many useful functions for cleaning
 library(openxlsx) # Used to import/export Excel files
 library(data.table) # Used to read in csv files more efficiently
 library(tidyverse) # Used to manipulate data
+library(zoo)
 library(RJSONIO)
 library(RCurl)
 library(RecordLinkage) # used to clean up duplicates in the data
 library(lubridate) # Used to manipulate dates
+library(phonics) # used to extract phonetic version of names
 
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/master/processing/metadata/set_data_env.r")
 eval(parse(text = script))

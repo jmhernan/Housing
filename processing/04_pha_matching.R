@@ -24,28 +24,12 @@
 # 
 ###############################################################################
 
-
-#### Set up global parameter and call in libraries ####
-options(max.print = 350, tibble.print_max = 50, scipen = 999)
-
-library(housing) # contains many useful functions for cleaning
-library(tidyverse) # Used to manipulate data
-library(lubridate) # used to manipulate dates
-library(RecordLinkage) # used to clean up duplicates in the data
-library(phonics) # used to extract phonetic version of names
-library(RJSONIO)
-library(RCurl)
-
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/master/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
 METADATA = RJSONIO::fromJSON("//home/joseh/source/Housing/processing/metadata/metadata.json")
 
 set_data_envr(METADATA,"combined")
-
-#### Bring in data ####
-# Assumes pha_combining.R has been run at some point
-pha <- readRDS(file = paste0(housing_path, pha_fn))
 
 ### Remove duplicate records in preparation for matching
 pha_dedup <- pha %>%

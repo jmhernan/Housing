@@ -22,14 +22,6 @@
 # 2017-05-17, last updated 2018-04-30
 # 
 ###############################################################################
-library(housing) # contains many useful functions for cleaning
-# library(odbc) # Used to connect to SQL server
-library(openxlsx) # Used to import/export Excel files
-library(data.table) # Used to read in csv files more efficiently
-library(tidyverse) # Used to manipulate data
-library(RJSONIO)
-library(RCurl)
-library(phonics) # used to extract phonetic version of names
 
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/master/processing/metadata/set_data_env.r")
 eval(parse(text = script))
@@ -994,6 +986,7 @@ rm(list = ls(pattern = "sha2"))
 rm(list = ls(pattern = "sha3"))
 rm(list = ls(pattern = "sha4"))
 rm(list = ls(pattern = "sha5"))
+rm(list = ls(pattern = "sha6"))
 rm(list = ls(pattern = "sha_"))
 rm(list = ls(pattern = "hh_"))
 rm(field_name_mapping_fn)

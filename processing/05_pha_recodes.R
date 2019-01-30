@@ -25,11 +25,6 @@
 
 
 #### Set up global parameter and call in libraries ####
-options(max.print = 350, tibble.print_max = 50, scipen = 999)
-
-library(tidyverse) # Used to manipulate data
-library(RJSONIO)
-library(RCurl)
 
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/metadata/set_data_env.r")
 eval(parse(text = script))
@@ -38,19 +33,13 @@ METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata.json")
 
 set_data_envr(METADATA,"combined")
 
-#### Bring in data ####
-pha_clean <- readRDS(file = paste0(housing_path, pha_clean_fn))
-
-
 #### Race ####
 # Recode race variables and make numeric
 # Note: Because of typos and other errors, this process will overestimate 
 # the number of people with multiple races
 pha_recoded <- pha_clean %>%
   mutate_at(vars(r_white:r_nhpi), 
-            funs(new = car::recode(., "'Y' = 1; '1' = 1; 'N' = 0; '0' = 0; 'NULL' = NA; else = NA", 
-                                   as.numeric.result = TRUE, as.factor.result = FALSE
-                                   ))
+            funs(new = car::recode(., "'Y' = 1; '1' = 1; 'N' = 0; '0' = 0; 'NULL' = NA; else = NA"))
             ) %>%
   # Make r_hisp new for now, need to check recode eventually
   mutate(r_hisp_new = ifelse(r_hisp == 2 & !is.na(r_hisp), 0, r_hisp),
