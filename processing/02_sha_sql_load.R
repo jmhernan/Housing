@@ -22,10 +22,6 @@
 # 2017-05-17, last updated 2018-04-30
 # 
 ###############################################################################
-
-#### Set up global parameter and call in libraries ####
-options(max.print = 350, tibble.print_max = 50, scipen = 999)
-
 library(housing) # contains many useful functions for cleaning
 # library(odbc) # Used to connect to SQL server
 library(openxlsx) # Used to import/export Excel files
@@ -33,6 +29,7 @@ library(data.table) # Used to read in csv files more efficiently
 library(tidyverse) # Used to manipulate data
 library(RJSONIO)
 library(RCurl)
+library(phonics) # used to extract phonetic version of names
 
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/master/processing/metadata/set_data_env.r")
 eval(parse(text = script))
@@ -760,19 +757,8 @@ if (UW == TRUE) {
 
 #### Append data ####
 sha <- bind_rows(sha_ph, sha_hcv)
+
 ##################################################
-
-names(sha)
-
-totals <- sha %>% group_by(hh_id) %>% summarise(n = n()) %>% filter(!is.na(hh_id)) %>% filter(n == max(n)) %>% data.table() # filter(n == max(n))
-
-test2 <- sha %>% group_by(hh_id) %>% filter(hh_id == 94047) %>% data.table()
-raw_test <- sha5a_new %>% filter(hh_id == 94047) %>% data.table()
-
-cert_id_test <- sha5 %>% group_by(cert_id,hh_id) %>%  summarise(n = n()) %>% filter(hh_id == 94047) 
-
-sha5 %>% filter(cert_id == 140689)
- ##################################################
 ### Fix up conflicting and missing income
 # Some joined income data will show NA for HH fields. Use summarise to 
 # fill in gaps (rather than mutate, which is slow)
@@ -851,9 +837,6 @@ sha <- sha %>% mutate(mbr_num = ifelse(is.na(mbr_num) & ssn == hh_ssn &
 sha$hh_id_temp <- group_indices(sha, hh_id, prog_type, unit_add, 
                                    unit_city, act_date, act_type, incasset_id)
 
-raw_test2 <- sha %>% filter(hh_id == 94047) %>% data.table
-
-raw_test2 %>% group_by(hh_id_temp) %>% summarise(n = n())
 ###########################
 # sha %>% group_by(hh_id_temp) %>% summarise(n = n()) %>% filter(n == max(n)) %>% data.table() 
 # ha %>% filter(hh_id_temp == 40377) %>% data.table()

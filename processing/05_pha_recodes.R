@@ -107,13 +107,6 @@ pha_recoded <- pha_recoded %>%
   ungroup()
 
 
-#### Add other recodes later ####
-
-
-#### Save point ####
-saveRDS(pha_recoded, file = paste0(housing_path, 
-                                   pha_recoded_fn))
-
 #### Clean up ####
 rm(pha_clean)
 gc()

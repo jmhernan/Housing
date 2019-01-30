@@ -23,17 +23,6 @@
 # 
 ###############################################################################
 
-
-#### Set up global parameter and call in libraries ####
-options(max.print = 350, tibble.print_max = 50, scipen = 999)
-
-library(housing) # contains many useful functions for cleaning
-library(openxlsx) # Used to import/export Excel files
-library(lubridate) # Used to manipulate dates
-library(tidyverse) # Used to manipulate data
-library(RJSONIO)
-library(RCurl)
-
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
@@ -43,9 +32,7 @@ set_data_envr(METADATA,"combined")
 
 
 #### Bring in data and sort ####
-pha_cleanadd_geocoded <- readRDS(file = paste0(housing_path, 
-                                      pha_cleanadd_geocoded_fn))
-pha_cleanadd_sort <- pha_cleanadd_geocoded %>%
+pha_cleanadd_sort <- pha_recoded %>%
   arrange(pid, act_date, agency_new, prog_type)
 
 #### Create key variables ####
@@ -1300,16 +1287,10 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>%
 # See how many rows were affected
 sum(pha_cleanadd_sort$truncated, na.rm = T)
 
-
-#### Export drop tracking data ####
-saveRDS(drop_track, file = paste0(housing_path, "drop_track.Rda"))
 #drop_track <- readRDS(file = paste0(housing_path, "/OrganizedData/drop_track.Rda"))
 rm(drop_temp)
 rm(drop_track)
 
-#### Save point ####
-pha_cleanadd_sort_dedup <- pha_cleanadd_sort
-saveRDS(pha_cleanadd_sort_dedup, file = paste0(housing_path, pha_cleanadd_sort_dedup_fn))
 
 ### Clean up remaining data frames
 rm(pha_cleanadd)

@@ -36,10 +36,10 @@ library(phonics) # used to extract phonetic version of names
 library(RJSONIO)
 library(RCurl)
 
-script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/metadata/set_data_env.r")
+script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/master/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
-METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata.json")
+METADATA = RJSONIO::fromJSON("//home/joseh/source/Housing/processing/metadata/metadata.json")
 
 set_data_envr(METADATA,"combined")
 
@@ -1027,6 +1027,8 @@ pha_clean <- pha_clean %>%
 # With some variables stripped out, can reduce the number of rows
 pha_clean <- pha_clean %>% distinct()
 
+# saveRDS(pha_clean, file = paste0(housing_path, "pha_cleaned_test_hh_id.Rds"))
+## TROUBLESHOOT THE HH_ID CREATION 
 
 #### Carry over updated names etc. to head-of-household details ####
 # Ideally, this will eventually happen in parallel with each cleanup step above for use in later deduplication
@@ -1052,6 +1054,7 @@ pha_clean$hh_id_temp <- group_indices(pha_clean, major_prog, hh_ssn_new, hh_ssn_
                                          unit_add, unit_apt, unit_apt2, unit_city, 
                                          act_date, act_type)
 
+############################
 # Limit to just the cleaned up HH variables
 pha_clean_hh <- pha_clean %>%
   distinct(hh_id_temp, 
@@ -1089,11 +1092,6 @@ pha_clean <- pha_clean %>% filter(!(lname_new_m6 == "DUFUS" & fname_new_m6 == "I
 pha_clean$pid <- group_indices(pha_clean, ssn_id_m6, lname_new_m6, 
                                fname_new_m6, dob_m6)
 pha_clean <- pha_clean %>% select(pid, ssn_new:hh_id_new)
-
-
-#### Save point ####
-saveRDS(pha_clean, file = paste0(housing_path, pha_clean_fn))
-# "/OrganizedData/pha_matched.Rda"
 
 # Remove data frames and values made along the way
 rm(list = ls(pattern = "pha_new[1-6]*$"))
