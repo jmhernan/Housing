@@ -48,10 +48,8 @@ pha_clean <- readRDS(file = paste0(housing_path, pha_clean_fn))
 # the number of people with multiple races
 pha_recoded <- pha_clean %>%
   mutate_at(vars(r_white:r_nhpi), 
-            funs(new = car::recode(., "'Y' = 1; '1' = 1; 'N' = 0; '0' = 0; 'NULL' = NA; else = NA", 
-                                   as.numeric.result = TRUE, as.factor.result = FALSE
-                                   ))
-            ) %>%
+            funs(new = car::recode(., "'Y' = 1; '1' = 1; 'N' = 0; '0' = 0; 'NULL' = NA; else = NA"))
+  ) %>%
   # Make r_hisp new for now, need to check recode eventually
   mutate(r_hisp_new = ifelse(r_hisp == 2 & !is.na(r_hisp), 0, r_hisp),
          # Propogate collapsed race code from SHA HCV data
@@ -60,7 +58,7 @@ pha_recoded <- pha_clean %>%
          r_aian_new = ifelse(race == 3 & !is.na(race), 1, r_aian_new),
          r_asian_new = ifelse(race == 4 & !is.na(race), 1, r_asian_new),
          r_nhpi_new = ifelse(race == 5 & !is.na(race), 1, r_nhpi_new)
-         )
+  )
 
 
 # Identify individuals with contradictory race values and set to Y

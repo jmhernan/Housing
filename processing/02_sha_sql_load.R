@@ -23,9 +23,6 @@
 # 
 ###############################################################################
 
-#### Set up global parameter and call in libraries ####
-options(max.print = 350, tibble.print_max = 50, scipen = 999)
-
 library(housing) # contains many useful functions for cleaning
 library(odbc) # Used to connect to SQL server
 library(openxlsx) # Used to import/export Excel files
@@ -37,7 +34,7 @@ library(RCurl)
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
-METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata.json")
+METADATA = RJSONIO::fromJSON("//home/joseh/source/Housing/processing/metadata/metadata.json")
 
 set_data_envr(METADATA,"sha_data")
 
@@ -50,49 +47,49 @@ if(sql == TRUE) {
 sha3a_new <- fread(file = 
                      file.path(sha_path,
                                sha3a_new_fn), 
-                   na.strings = c("NA", " ", "", "NULL", "N/A"),
+                   na.strings = c("NA", "", "NULL", "N/A"),
                    stringsAsFactors = F)
 sha3b_new <- fread(file = file.path(sha_path,
-                                       sha3b_new_fn), 
-                   na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                    sha3b_new_fn), 
+                   na.strings = c("NA", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
 sha5a_new <- fread(file = file.path(sha_path,
-                                       sha5a_new_fn), 
-                   na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                    sha5a_new_fn), 
+                   na.strings = c("NA", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
 sha5b_new <- fread(file = file.path(sha_path,
-                                       sha5b_new_fn),
-                   na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                    sha5b_new_fn),
+                   na.strings = c("NA", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
 
 
 # Bring in suffix corrected SHA data
 sha1a <- fread(file = file.path(sha_path,
-                                   sha1a_fn), 
-               na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha1a_fn), 
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 sha1b <- fread(file = file.path(sha_path,
-                                   sha1b_fn),
-               na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha1b_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 sha1c <- fread(file = file.path(sha_path,
-                                   sha1c_fn),
-               na.strings = c("NA", " ", "", "NULL", "N/A"), stringsAsFactors = F)
+                                sha1c_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), stringsAsFactors = F)
 sha2a <- fread(file = file.path(sha_path,
-                                   sha2a_fn),
-               na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha2a_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 sha2b <- fread(file = file.path(sha_path,
-                                   sha2b_fn),
-               na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha2b_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 sha2c <- fread(file = file.path(sha_path,
-                                   sha2c_fn),
-                  na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha2c_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 sha4a <- fread(file = file.path(sha_path,
-                                   sha4a_fn),
-                  na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha4a_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 
 
@@ -524,6 +521,7 @@ if(UW == TRUE) {
     select(-hh_fname,-mname)
     
   names(sha1a.fix) <- names(sha1a)
+  names(sha1a.fix)[57] = "v57"
 
   sha1a.fix <- sha1a.fix %>%
     select(incasset_id:hh_lname, hh_lnamesuf = 56, hh_fname:lname, lnamesuf = 57, fname:55)

@@ -43,9 +43,9 @@ pha_cleanadd <- readRDS(file.path(housing_path, "/OrganizedData/pha_cleanadd_mid
 }
 ### If addresses have already been geocoded, bring them in here
 # Initial geocoding results (differs from future approaches)
-esri_20170824 <- read.xlsx(file.path(housing_path,
+esri_20170824 <- read.xlsx(file.path("//home/ubuntu/data/Housing/OrganizedData/",
                                             PHA_addresses_matched_ESRI_fn))
-goog_20170824 <- readRDS(file.path(housing_path,
+goog_20170824 <- readRDS(file.path("//home/ubuntu/data/Housing/OrganizedData/",
                                    PHA_addresses_matched_google_fn))
 
 

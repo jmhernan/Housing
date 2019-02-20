@@ -45,7 +45,7 @@ library(RCurl)
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
-METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata.json")
+METADATA = RJSONIO::fromJSON("//home/joseh/source/Housing/processing/metadata/metadata.json")
 
 set_data_envr(METADATA,"combined")
 
@@ -66,7 +66,7 @@ pha_cleanadd <- pha_recoded %>%
 ### Specific addresses
 # Some addresses have specific issues than cannot be addressed via rules
 # However, these specific addresses should not be shared publically
-adds_specific <- read.xlsx(paste0(housing_path, pha_specific_fn),
+adds_specific <- read.xlsx(paste0("//home/ubuntu/data/Housing/OrganizedData/", "PHA_specific_addresses_fix.xlsx"),
                            na.strings = "")
 
 adds_specific <- adds_specific %>%
