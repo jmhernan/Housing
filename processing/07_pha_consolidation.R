@@ -23,10 +23,6 @@
 # 
 ###############################################################################
 
-
-#### Set up global parameter and call in libraries ####
-options(max.print = 350, tibble.print_max = 50, scipen = 999)
-
 library(housing) # contains many useful functions for cleaning
 library(openxlsx) # Used to import/export Excel files
 library(lubridate) # Used to manipulate dates
@@ -43,6 +39,8 @@ set_data_envr(METADATA,"combined")
 
 
 #### Bring in data and sort ####
+pha_cleanadd_geocoded <- pha_cleanadd_coded
+
 pha_cleanadd_geocoded <- readRDS(file = paste0(housing_path, 
                                       pha_cleanadd_geocoded_fn))
 pha_cleanadd_sort <- pha_cleanadd_geocoded %>%
@@ -246,7 +244,7 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>%
     port_out_sha = ifelse(agency_new == "KCHA" & cost_pha == "WA001", 1, port_out_sha)
   )
 
-
+if(UW == FALSE) {
 #### Remove missing dates (droptype = 1) ####
 dfsize_head <- nrow(pha_cleanadd_sort) # Keep track of size of data frame at each step
 pha_cleanadd_sort <- pha_cleanadd_sort %>% mutate(drop = ifelse(is.na(act_date), 1, 0))
@@ -254,9 +252,11 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>% mutate(drop = ifelse(is.na(act_date),
 drop_temp <- pha_cleanadd_sort %>% select(row, drop)
 drop_track <- left_join(drop_track, drop_temp, by = "row")
 # Finish dropping rows
+pha_cleanadd_sort_test <- pha_cleanadd_sort %>% filter(drop == 1)
+
 pha_cleanadd_sort <- pha_cleanadd_sort %>% filter(drop != 1)
 dfsize_head - nrow(pha_cleanadd_sort)
-
+}
 
 #### Clean up duplicate rows - multiple EOP types (droptype == 2) ####
 # Some duplicate rows where there is both an EOP action (#6) and an
@@ -325,7 +325,7 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>% filter(drop == 0 | is.na(drop))
 dfsize_head - nrow(pha_cleanadd_sort) # Track how many rows were dropped
 
 
-
+if (UW == FALSE) {
 #### Drop rows with missing address data that are not port outs (droptype = 4) ####
 dfsize_head <- nrow(pha_cleanadd_sort)
 pha_cleanadd_sort <- pha_cleanadd_sort %>%
@@ -423,7 +423,7 @@ repeat {
 }
 dfsize_head - nrow(pha_cleanadd_sort)
 
-
+}
 
 #### Get rid of blank addresses when there is an address for the same date (droptype = 6) ####
 # NO LONGER within a given program/subtype/spec voucher etc.
@@ -1057,7 +1057,7 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>%
          port_out_sha = ifelse(agency_new == "KCHA" & port_in == 1 & cost_pha == "WA001", 1, port_out_sha))
 
 
-
+if (UW == FALSE) {
 #### Rows where startdate = enddate and also startdate = the next row's startdate (often same program) (droptype = 12) ####
 # Use the same logic as droptype 6 to decide which row to keep
 dfsize_head <- nrow(pha_cleanadd_sort)
@@ -1297,6 +1297,9 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>%
                startdate == lead(startdate, 1), 
              startdate, enddate))
       , origin = "1970-01-01"))
+
+}
+
 # See how many rows were affected
 sum(pha_cleanadd_sort$truncated, na.rm = T)
 
