@@ -33,19 +33,25 @@ library(RCurl)
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
-METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata.json")
+METADATA = RJSONIO::fromJSON("//home/joseh/source/Housing/processing/metadata/metadata.json")
 
 set_data_envr(METADATA,"combined")
 
 
 #### Bring in data and sort ####
-pha_cleanadd_geocoded <- pha_cleanadd_coded
+# pha_cleanadd_geocoded <- pha_cleanadd_coded
 
-pha_cleanadd_geocoded <- readRDS(file = paste0(housing_path, 
-                                      pha_cleanadd_geocoded_fn))
+# pha_cleanadd_geocoded <- readRDS(file = paste0(housing_path, 
+#                                       pha_cleanadd_geocoded_fn))
+# Save file for checks 
+#saveRDS(pha_cleanadd_geocoded, "//home/joseh/data/Housing/OrganizedData/pha_cleanadd_dropcheck_5_2019.Rda")
+
+pha_cleanadd_geocoded <- readRDS(file = paste0(housing_path, "pha_cleanadd_dropcheck_5_2019.Rda"))
+
+
 pha_cleanadd_sort <- pha_cleanadd_geocoded %>%
   arrange(pid, act_date, agency_new, prog_type)
-
+rm(pha_cleanadd_geocoded)
 #### Create key variables ####
 ### Final agency and program fields
 # Set up the groupings we want to use in analyses
@@ -244,7 +250,7 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>%
     port_out_sha = ifelse(agency_new == "KCHA" & cost_pha == "WA001", 1, port_out_sha)
   )
 
-if(UW == FALSE) {
+
 #### Remove missing dates (droptype = 1) ####
 dfsize_head <- nrow(pha_cleanadd_sort) # Keep track of size of data frame at each step
 pha_cleanadd_sort <- pha_cleanadd_sort %>% mutate(drop = ifelse(is.na(act_date), 1, 0))
@@ -252,11 +258,9 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>% mutate(drop = ifelse(is.na(act_date),
 drop_temp <- pha_cleanadd_sort %>% select(row, drop)
 drop_track <- left_join(drop_track, drop_temp, by = "row")
 # Finish dropping rows
-pha_cleanadd_sort_test <- pha_cleanadd_sort %>% filter(drop == 1)
 
 pha_cleanadd_sort <- pha_cleanadd_sort %>% filter(drop != 1)
 dfsize_head - nrow(pha_cleanadd_sort)
-}
 
 #### Clean up duplicate rows - multiple EOP types (droptype == 2) ####
 # Some duplicate rows where there is both an EOP action (#6) and an
@@ -325,7 +329,6 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>% filter(drop == 0 | is.na(drop))
 dfsize_head - nrow(pha_cleanadd_sort) # Track how many rows were dropped
 
 
-if (UW == FALSE) {
 #### Drop rows with missing address data that are not port outs (droptype = 4) ####
 dfsize_head <- nrow(pha_cleanadd_sort)
 pha_cleanadd_sort <- pha_cleanadd_sort %>%
@@ -423,7 +426,6 @@ repeat {
 }
 dfsize_head - nrow(pha_cleanadd_sort)
 
-}
 
 #### Get rid of blank addresses when there is an address for the same date (droptype = 6) ####
 # NO LONGER within a given program/subtype/spec voucher etc.
@@ -613,8 +615,8 @@ dfsize_head - nrow(pha_cleanadd_sort)
 
 
 #### Save point ####
-saveRDS(pha_cleanadd_sort, file = paste0(housing_path, "pha_cleanadd_sort_mid-consolidation.Rda"))
-saveRDS(drop_track, file = paste0(housing_path, "drop_track_mid-consolidation.Rda"))
+# saveRDS(pha_cleanadd_sort, file = paste0(housing_path, "pha_cleanadd_sort_mid-consolidation.Rda"))
+# saveRDS(drop_track, file = paste0(housing_path, "drop_track_mid-consolidation.Rda"))
 gc()
 # pha_cleanadd_sort <- readRDS(file = paste0(housing_path, "/OrganizedData/pha_cleanadd_sort_mid-consolidation.Rda"))
 # drop_track <- readRDS(file = paste0(housing_path, "/OrganizedData/drop_track_mid-consolidation.Rda"))
@@ -1057,7 +1059,6 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>%
          port_out_sha = ifelse(agency_new == "KCHA" & port_in == 1 & cost_pha == "WA001", 1, port_out_sha))
 
 
-if (UW == FALSE) {
 #### Rows where startdate = enddate and also startdate = the next row's startdate (often same program) (droptype = 12) ####
 # Use the same logic as droptype 6 to decide which row to keep
 dfsize_head <- nrow(pha_cleanadd_sort)
@@ -1298,21 +1299,20 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>%
              startdate, enddate))
       , origin = "1970-01-01"))
 
-}
 
 # See how many rows were affected
 sum(pha_cleanadd_sort$truncated, na.rm = T)
 
 
 #### Export drop tracking data ####
-saveRDS(drop_track, file = paste0(housing_path, "drop_track.Rda"))
+# saveRDS(drop_track, file = paste0(housing_path, "drop_track.Rda"))
 #drop_track <- readRDS(file = paste0(housing_path, "/OrganizedData/drop_track.Rda"))
 rm(drop_temp)
 rm(drop_track)
 
 #### Save point ####
-pha_cleanadd_sort_dedup <- pha_cleanadd_sort
-saveRDS(pha_cleanadd_sort_dedup, file = paste0(housing_path, pha_cleanadd_sort_dedup_fn))
+# pha_cleanadd_sort_dedup <- pha_cleanadd_sort
+# saveRDS(pha_cleanadd_sort_dedup, file = paste0(housing_path, pha_cleanadd_sort_dedup_fn))
 
 ### Clean up remaining data frames
 rm(pha_cleanadd)

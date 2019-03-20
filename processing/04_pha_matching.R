@@ -1092,7 +1092,7 @@ pha_clean <- pha_clean %>% select(pid, ssn_new:hh_id_new)
 
 
 #### Save point ####
-saveRDS(pha_clean, file = paste0(housing_path, pha_clean_fn))
+# saveRDS(pha_clean, file = paste0(housing_path, pha_clean_fn))
 # "/OrganizedData/pha_matched.Rda"
 
 # Remove data frames and values made along the way

@@ -109,8 +109,8 @@ pha_recoded <- pha_recoded %>%
 
 
 #### Save point ####
-saveRDS(pha_recoded, file = paste0(housing_path, 
-                                   pha_recoded_fn))
+# saveRDS(pha_recoded, file = paste0(housing_path, 
+#                                   pha_recoded_fn))
 
 #### Clean up ####
 rm(pha_clean)

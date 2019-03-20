@@ -51,7 +51,7 @@ set_data_envr(METADATA,"combined")
 
 
 #### Bring in data #####
-pha_recoded <- readRDS(file = paste0(housing_path, pha_recoded_fn))
+# pha_recoded <- readRDS(file = paste0(housing_path, pha_recoded_fn))
 
 
 ##### Addresses #####
@@ -353,7 +353,7 @@ pha_cleanadd_geocoded <- readRDS(file = paste0(housing_path,
 
 
 #### Merge KCHA development data now that addresses are clean #####
-pha_cleanadd_geocoded <- pha_cleanadd_geocoded %>%
+pha_cleanadd_geocoded <- pha_cleanadd_coded %>%
   mutate(dev_city = paste0(unit_city_new, ", ", unit_state_new, " ", unit_zip_new),
     # Trim any white space
     dev_city = str_trim(dev_city)
@@ -361,7 +361,8 @@ pha_cleanadd_geocoded <- pha_cleanadd_geocoded %>%
 
 # HCV
 # Bring in data
-kcha_dev_adds <- data.table::fread(file = file.path(kcha_dev_adds_path_fn), 
+
+kcha_dev_adds <- data.table::fread(file = file.path(housing_path,kcha_dev_adds_path_fn), 
                                         stringsAsFactors = FALSE)
 # Bring in variable name mapping table
 fields <- read.csv(text = RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/Field%20name%20mapping.csv"), 
@@ -422,7 +423,7 @@ pha_cleanadd_geocoded <- pha_cleanadd_geocoded %>%
 
 
 #### Save point ####
-saveRDS(pha_cleanadd_geocoded, file = paste0(housing_path, pha_cleanadd_geocoded_fn))
+# saveRDS(pha_cleanadd_geocoded, file = paste0(housing_path, pha_cleanadd_geocoded_fn))
 
 rm(fields)
 rm(secondary)
@@ -430,3 +431,4 @@ rm(secondary_init)
 rm(pha_recoded)
 rm(pha_cleanadd)
 gc()
+rm(pha_cleanadd_coded)
