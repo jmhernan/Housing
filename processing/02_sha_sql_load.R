@@ -702,6 +702,10 @@ sha4a <- yesno_f(sha4a, r_white, r_black, r_aian, r_asian, r_nhpi,
                 portability, disability)
 sha4a <- sha4a %>% mutate(r_hisp = ifelse(r_hisp == 2 & !is.na(r_hisp), 
                                         0, r_hisp))
+#####
+sha5a_new %>%
+  select(contains("date")) %>%
+  str()
 
 sha5a_new <- sha5a_new %>%
   mutate(
@@ -717,7 +721,7 @@ sha5a_new <- sha5a_new %>%
                   'Portability Move-in' = 4; 'Portability Move-out' = 5; 
                   'Portablity Move-out' = 5; 'Void' = 15; else = NA"))
     ) %>%
-  mutate_at(vars(contains("date"), dob), funs(as.Date(., format = "%Y-%m-%d")))
+  mutate_at(vars(contains("date"), dob), funs(as.Date(., format = "%m/%d/%Y")))
 
 
 sha5a_new <- yesno_f(sha5a_new, portability, disability, tb_rent_ceiling)
@@ -776,7 +780,6 @@ if (UW == TRUE) {
 
 #### Append data ####
 sha <- bind_rows(sha_ph, sha_hcv)
-
 
 ### Fix up conflicting and missing income
 # Some joined income data will show NA for HH fields. Use summarise to 

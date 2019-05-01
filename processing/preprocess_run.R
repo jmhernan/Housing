@@ -18,8 +18,6 @@ housing_scripts <- c('01_kcha_sql_load.R',
                      '07_pha_consolidation.R',
                      '08_pha_analyses_prep.R')
 
-start_time <- Sys.time()
-
 for (rscripts in housing_scripts) {
   start_time <- Sys.time()
   source(paste0(housing_source, rscripts))
@@ -27,7 +25,5 @@ for (rscripts in housing_scripts) {
   print(end_time - start_time)
 }
 
-end_time <- Sys.time()
-print(end_time - start_time)
 
 
