@@ -37,8 +37,8 @@ library(RCurl)
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
-METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata.json")
-
+local_metadata_path <- "//home/joseh/source/Housing/processing/metadata/"
+METADATA = RJSONIO::fromJSON(paste0(local_metadata_path,"metadata.json"))
 set_data_envr(METADATA,"sha_data")
 
 if(sql == TRUE) {
@@ -50,49 +50,49 @@ if(sql == TRUE) {
 sha3a_new <- fread(file = 
                      file.path(sha_path,
                                sha3a_new_fn), 
-                   na.strings = c("NA", " ", "", "NULL", "N/A"),
+                   na.strings = c("NA", "", "NULL", "N/A"),
                    stringsAsFactors = F)
 sha3b_new <- fread(file = file.path(sha_path,
-                                       sha3b_new_fn), 
-                   na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                    sha3b_new_fn), 
+                   na.strings = c("NA", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
 sha5a_new <- fread(file = file.path(sha_path,
-                                       sha5a_new_fn), 
-                   na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                    sha5a_new_fn), 
+                   na.strings = c("NA", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
 sha5b_new <- fread(file = file.path(sha_path,
-                                       sha5b_new_fn),
-                   na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                    sha5b_new_fn),
+                   na.strings = c("NA", "", "NULL", "N/A"), 
                    stringsAsFactors = F)
 
 
 # Bring in suffix corrected SHA data
 sha1a <- fread(file = file.path(sha_path,
-                                   sha1a_fn), 
-               na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha1a_fn), 
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 sha1b <- fread(file = file.path(sha_path,
-                                   sha1b_fn),
-               na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha1b_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 sha1c <- fread(file = file.path(sha_path,
-                                   sha1c_fn),
-               na.strings = c("NA", " ", "", "NULL", "N/A"), stringsAsFactors = F)
+                                sha1c_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), stringsAsFactors = F)
 sha2a <- fread(file = file.path(sha_path,
-                                   sha2a_fn),
-               na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha2a_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 sha2b <- fread(file = file.path(sha_path,
-                                   sha2b_fn),
-               na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha2b_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 sha2c <- fread(file = file.path(sha_path,
-                                   sha2c_fn),
-                  na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha2c_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 sha4a <- fread(file = file.path(sha_path,
-                                   sha4a_fn),
-                  na.strings = c("NA", " ", "", "NULL", "N/A"), 
+                                sha4a_fn),
+               na.strings = c("NA", "", "NULL", "N/A"), 
                stringsAsFactors = F)
 
 
@@ -136,7 +136,7 @@ rm(df_dedups)
 
 ### Get field names to match
 # Bring in variable name mapping table
-fields <- read.csv(text = RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/Field%20name%20mapping.csv"), 
+fields <- read.csv(text = RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/Field%20name%20mapping.csv"), 
          header = TRUE, stringsAsFactors = FALSE)
 
 ### UW DATA field names mappings are different or new ones don't have mappings for the voucher data?
@@ -165,14 +165,14 @@ gc()
 
 
 # Apply new names to columns
-sha1a <- setnames(sha1a, fields$PHSKC[match(names(sha1a), fields$SHA_old)])
-sha1b <- setnames(sha1b, fields$PHSKC[match(names(sha1b), fields$SHA_old)])
-sha1c <- setnames(sha1c, fields$PHSKC[match(names(sha1c), fields$SHA_old)])
-sha2a <- setnames(sha2a, fields$PHSKC[match(names(sha2a), fields$SHA_old)])
-sha2b <- setnames(sha2b, fields$PHSKC[match(names(sha2b), fields$SHA_old)])
-sha2c <- setnames(sha2c, fields$PHSKC[match(names(sha2c), fields$SHA_old)])
-sha3a_new <- setnames(sha3a_new, fields$PHSKC[match(names(sha3a_new), 
-                                                    fields$SHA_new_ph)])
+sha1a <- setnames(sha1a, fields$common_name[match(names(sha1a), fields$sha_old)])
+sha1b <- setnames(sha1b, fields$common_name[match(names(sha1b), fields$sha_old)])
+sha1c <- setnames(sha1c, fields$common_name[match(names(sha1c), fields$sha_old)])
+sha2a <- setnames(sha2a, fields$common_name[match(names(sha2a), fields$sha_old)])
+sha2b <- setnames(sha2b, fields$common_name[match(names(sha2b), fields$sha_old)])
+sha2c <- setnames(sha2c, fields$common_name[match(names(sha2c), fields$sha_old)])
+sha3a_new <- setnames(sha3a_new, fields$common_name[match(names(sha3a_new), 
+                                                    fields$sha_new_ph)])
 
 if (UW == TRUE) {
 # Issue with the hh_names, they are reapeted accross both HH and housemember names same for ssn
@@ -181,21 +181,21 @@ if (UW == TRUE) {
   colnames(sha3a_new)[12] <- "hh_mname"
 }
 
-sha3b_new <- setnames(sha3b_new, fields$PHSKC[match(names(sha3b_new), 
-                                                    fields$SHA_new_ph)])
+sha3b_new <- setnames(sha3b_new, fields$common_name[match(names(sha3b_new), 
+                                                    fields$sha_new_ph)])
 sha_portfolio_codes <- setnames(sha_portfolio_codes, 
-                                fields$PHSKC[match(names(sha_portfolio_codes), 
-                                                   fields$SHA_prog_port_codes)])
+                                fields$common_name[match(names(sha_portfolio_codes), 
+                                                   fields$sha_prog_port_codes)])
 
-sha4a <- setnames(sha4a, fields$PHSKC[match(names(sha4a), fields$SHA_old)])
-sha5a_new <- setnames(sha5a_new, fields$PHSKC[match(names(sha5a_new), 
-                                                    fields$SHA_new_hcv)])
-sha5b_new <- setnames(sha5b_new, fields$PHSKC[match(names(sha5b_new), 
-                                                    fields$SHA_new_hcv)])
+sha4a <- setnames(sha4a, fields$common_name[match(names(sha4a), fields$sha_old)])
+sha5a_new <- setnames(sha5a_new, fields$common_name[match(names(sha5a_new), 
+                                                    fields$sha_new_hcv)])
+sha5b_new <- setnames(sha5b_new, fields$common_name[match(names(sha5b_new), 
+                                                    fields$sha_new_hcv)])
 
 sha_prog_codes <- setnames(sha_prog_codes, 
-                           fields$PHSKC[match(names(sha_prog_codes), 
-                                              fields$SHA_prog_port_codes)])
+                           fields$common_name[match(names(sha_prog_codes), 
+                                              fields$sha_prog_port_codes)])
 
 # UW DATA
 if (UW == TRUE){
@@ -524,6 +524,7 @@ if(UW == TRUE) {
     select(-hh_fname,-mname)
     
   names(sha1a.fix) <- names(sha1a)
+  names(sha1a.fix)[57] = "v57"
 
   sha1a.fix <- sha1a.fix %>%
     select(incasset_id:hh_lname, hh_lnamesuf = 56, hh_fname:lname, lnamesuf = 57, fname:55)
@@ -662,7 +663,7 @@ sha5a_new <- sha5a_new %>%
                   'Portability Move-in' = 4; 'Portability Move-out' = 5; 
                   'Portablity Move-out' = 5; 'Void' = 15; else = NA"))
     ) %>%
-  mutate_at(vars(contains("date"), dob), funs(as.Date(., format = "%Y-%m-%d")))
+  mutate_at(vars(contains("date"), dob), funs(as.Date(., format = "%m/%d/%Y")))
 
 
 sha5a_new <- yesno_f(sha5a_new, portability, disability, tb_rent_ceiling)

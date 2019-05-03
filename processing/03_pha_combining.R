@@ -34,11 +34,9 @@ library(RCurl)
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
-METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata.json")
-
+local_metadata_path <- "//home/joseh/source/Housing/processing/metadata/"
+METADATA = RJSONIO::fromJSON(paste0(local_metadata_path,"metadata.json"))
 set_data_envr(METADATA,"combined")
-
-options(max.print = 400, tibble.print_max = 50, scipen = 999)
 
 if(sql == TRUE) {
   
@@ -265,9 +263,6 @@ pha <- pha %>%
   mutate(gender_new_cnt = ifelse(ssn_new_junk == 0 | ssn_c_junk == 0, n(), NA)) %>%
   ungroup()
 
-
-#### Save point ####
-saveRDS(pha, file = paste0(housing_path, pha_fn))
 
 
 #### Clean up ####

@@ -45,14 +45,9 @@ library(RCurl)
 script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
-METADATA = RJSONIO::fromJSON("//home/ubuntu/data/metadata/metadata.json")
-
+local_metadata_path <- "//home/joseh/source/Housing/processing/metadata/"
+METADATA = RJSONIO::fromJSON(paste0(local_metadata_path,"metadata.json"))
 set_data_envr(METADATA,"combined")
-
-
-#### Bring in data #####
-pha_recoded <- readRDS(file = paste0(housing_path, pha_recoded_fn))
-
 
 ##### Addresses #####
 # Remove written NAs and make actually missing
@@ -340,17 +335,7 @@ pha_cleanadd <- pha_cleanadd %>%
 
 rm(adds_specific)
 
-if (UW == FALSE) {
-  #### STOP HERE TO RUN GEOCODING ####
-  saveRDS(pha_cleanadd, file = paste0(housing_path, 
-                                    "/OrganizedData/pha_cleanadd_midpoint.Rda"))
-}
-
-#### START HERE IF GEOCODING HAS BEEN COMPLETED ####
-### Bring mid-point data back in
-pha_cleanadd_geocoded <- readRDS(file = paste0(housing_path, 
-                                      pha_cleanadd_geocoded_fn))
-
+pha_cleanadd_geocoded <- pha_cleanadd 
 
 #### Merge KCHA development data now that addresses are clean #####
 pha_cleanadd_geocoded <- pha_cleanadd_geocoded %>%
@@ -361,12 +346,12 @@ pha_cleanadd_geocoded <- pha_cleanadd_geocoded %>%
 
 # HCV
 # Bring in data
-kcha_dev_adds <- data.table::fread(file = file.path(kcha_dev_adds_path_fn), 
+kcha_dev_adds <- data.table::fread(file = file.path(paste0(housing_path,kcha_dev_adds_path_fn)), 
                                         stringsAsFactors = FALSE)
 # Bring in variable name mapping table
 fields <- read.csv(text = RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/Field%20name%20mapping.csv"), 
                    header = TRUE, stringsAsFactors = FALSE)
-kcha_dev_adds <- data.table::setnames(kcha_dev_adds, fields$PHSKC[match(names(kcha_dev_adds), fields$KCHA_modified)])
+kcha_dev_adds <- data.table::setnames(kcha_dev_adds, fields$common_name[match(names(kcha_dev_adds), fields$kcha_modified)])
 
 
 # Drop spare rows and deduplicate
@@ -420,9 +405,6 @@ pha_cleanadd_geocoded <- pha_cleanadd_geocoded %>%
          property_type = ifelse(is.na(property_type.y), property_type.x, property_type.y)) %>%
   select(-portfolio.x, -portfolio.y, -property_name.x, -property_name.y, -property_type.x, -property_type.y)
 
-
-#### Save point ####
-saveRDS(pha_cleanadd_geocoded, file = paste0(housing_path, pha_cleanadd_geocoded_fn))
 
 rm(fields)
 rm(secondary)
