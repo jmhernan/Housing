@@ -26,18 +26,62 @@
 #### Set up global parameter and call in libraries ####
 options(max.print = 600, tibble.print_max = 50, scipen = 999)
 
-library(housing) # contains many useful functions for cleaning
-library(odbc) # Used to connect to SQL server
-library(openxlsx) # Used to import/export Excel files
-library(data.table) # Used to read in csv files more efficiently
-library(tidyverse) # Used to manipulate data
-library(RJSONIO)
-library(RCurl)
 
-source(file = paste0(getwd(), "/processing/metadata/set_data_env.r"))
-METADATA <- RJSONIO::fromJSON(paste0(getwd(), "/processing/metadata/metadata.json"))
+if(!require(housing)){
+  devtools::install_github("PHSKC-APDE/Housing")
+  require(housing) # contains many useful functions for cleaning
+}
 
-set_data_envr(METADATA,"kcha_data")
+
+require(odbc) # Used to connect to SQL server
+
+
+if(!require(openxlsx)){
+  install.packages("openxlsx", repos='http://cran.us.r-project.org')
+  require(openxlsx) # Used to import/export Excel files
+}
+
+if(!require(data.table)){
+  install.packages("data.table", repos='http://cran.us.r-project.org')
+  require(data.table) # Used to read in csv files more efficiently
+}
+
+if(!require(tidyverse)){
+  install.packages("tidyverse")
+  require(tidyverse) # Used to manipulate data
+}
+
+if(!require(RJSONIO)){
+  install.packages("RJSONIO", repos='http://cran.us.r-project.org')
+  require(RJSONIO)
+}
+
+if(!require(RCurl)){
+  install.packages("RCurl", repos='http://cran.us.r-project.org')
+  require(RCurl)
+}
+
+if(!require(lubridate)){
+  install.packages("lubridate")
+  require(lubridate)
+}
+
+if(!require(RecordLinkage)){
+  install.packages("RecordLinkage", repos='http://cran.us.r-project.org')
+  require(RecordLinkage)
+}
+
+if(!require(phonics)){
+  install.packages("phonics", repos='http://cran.us.r-project.org')
+  require(phonics)
+}
+
+script <- RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/metadata/set_data_env.r")
+eval(parse(text = script))
+
+# housing_source_dir <- "local_path"
+METADATA = RJSONIO::fromJSON(paste0(housing_source_dir,"metadata/metadata.json"))
+set_data_envr(METADATA, "kcha_data")
 
 if (sql == TRUE) {
   db_apde51 <- dbConnect(odbc(), "PH_APDEStore51")
@@ -97,10 +141,17 @@ if (add_2018 == TRUE) {
 
 
 # Some of the KCHA end of participation data is missing from the original extract
-kcha_eop <- fread(file = file.path(kcha_path, kcha_eop_fn),
-                  na.strings = c("NA", "", "NULL", "N/A", "."), 
-                  stringsAsFactors = F)
-
+if (UW == TRUE) {
+  kcha_eop <- fread(file = file.path(kcha_path, kcha_eop_fname),
+                  na.strings = c("NA", "", "NULL", "N/A", "."),  
+                  stringsAsFactors = F) %>% 
+    mutate(HOH.Birthdate = as.Date(HOH.Birthdate, origin = "1899-12-30"), 
+           Effective.Date = as.Date(Effective.Date, origin = "1899-12-30"))
+} else {
+  kcha_eop <- fread(file = file.path(kcha_path, kcha_eop_fname),
+                    na.strings = c("NA", "", "NULL", "N/A", "."),  
+                    stringsAsFactors = F)
+}
 
 # Bring in variable name mapping table
 fields <- read.csv(text = RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/Field%20name%20mapping.csv"), 
@@ -308,10 +359,12 @@ kcha_2017_2017_full <- kcha_2017_2017_full %>% mutate(kcha_source = "kcha2017")
 kcha_2018_2018_full <- kcha_2018_2018_full %>% mutate(kcha_source = "kcha2018")
 
 ### Append latest extract
+if (add_2018 == TRUE) {
 kcha <- bind_rows(kcha_2004_2015_full, kcha_2016_2016_full, kcha_2017_2017_full,
                   kcha_2018_2018_full)
-
-
+} else {
+kcha <- bind_rows(kcha_2004_2015_full, kcha_2016_full, kcha_2017_full)
+}
 
 #########################################
 #### PART 2: RESHAPE AND REORGANIZE  ####
@@ -462,12 +515,20 @@ kcha <- kcha %>%
 
 #### ADD MISSING END OF PARTICIPATION (EOP) CERTS ####
 # Rename EOP fields to match KCHA
-# NB. No longer using names from the fields csv so that the bind_rows command works
+# NB. No longer using names from the fields csv
+if (UW == TRUE) {
+  kcha_eop <- kcha_eop %>%
+    rename(householdid = `Household.ID`, vouch_num = `Voucher.Number`,
+           hh_ssn = `HOH.SSN`, hh_dob = `HOH.Birthdate`, 
+           hh_lname = `HOH.Full.Name`, program_type = `Program.Type`,
+           h2a = `HUD-50058.2a.Type.of.Action`, h2b = `Effective.Date`)
+} else {
 kcha_eop <- kcha_eop %>%
   rename(householdid = `Household ID`, vouch_num = `Voucher Number`,
          hh_ssn = `HOH SSN`, hh_dob = `HOH Birthdate`, 
          hh_name = `HOH Full Name`, program_type = `Program Type`,
          h2a = `HUD-50058 2a Type of Action`, h2b = `Effective Date`)
+}
 
 # Pull out name components into separate fields
 kcha_eop <- kcha_eop %>%
@@ -804,4 +865,3 @@ rm(set_data_envr)
 rm(add_2018)
 rm(sql)
 gc()
-

@@ -36,13 +36,16 @@
 options(max.print = 350, tibble.print_max = 50, scipen = 999)
 
 
-library(openxlsx) # Used to import/export Excel files
-library(data.table) # used to read in csv files and rename fields
-library(tidyverse) # Used to manipulate data
-library(RJSONIO)
+require(openxlsx) # Used to import/export Excel files
+require(data.table) # used to read in csv files and rename fields
+require(tidyverse) # Used to manipulate data
+require(RJSONIO)
+require(RCurl)
 
-source(file = paste0(getwd(), "/processing/metadata/set_data_env.r"))
-METADATA <- RJSONIO::fromJSON(paste0(getwd(), "/processing/metadata/metadata.json"))
+script <- RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/metadata/set_data_env.r")
+eval(parse(text = script))
+
+METADATA = RJSONIO::fromJSON(paste0(housing_source_dir,"metadata/metadata.json"))
 set_data_envr(METADATA,"combined")
 
 if(sql == TRUE) {
@@ -51,10 +54,12 @@ if(sql == TRUE) {
   db_claims <- dbConnect(odbc(), "PHClaims51")
 }
 
-
+if (UW == TRUE) {
+  "skip load of pha_recoded"
+} else {
 #### Bring in data #####
-pha_recoded <- readRDS(file = file.path(housing_path, pha_recoded_fn))
-
+pha_recoded <- readRDS(file = paste0(housing_path, pha_recoded_fn))
+}
 
 ##### Addresses #####
 # Remove written NAs and make actually missing
@@ -527,7 +532,6 @@ pha_cleanadd <- pha_cleanadd %>%
 
 rm(adds_specific)
 
-
 #### Merge KCHA development data now that addresses are clean #####
 pha_cleanadd <- pha_cleanadd %>%
   mutate(dev_city = paste0(unit_city_new, ", ", unit_state_new, " ", unit_zip_new),
@@ -536,7 +540,7 @@ pha_cleanadd <- pha_cleanadd %>%
 
 # HCV
 # Bring in data
-kcha_dev_adds <- data.table::fread(file = file.path(kcha_dev_adds_path_fn), 
+kcha_dev_adds <- data.table::fread(file = file.path(housing_path, kcha_dev_adds_path_fn), 
                                         stringsAsFactors = FALSE)
 # Bring in variable name mapping table
 fields <- read.csv(text = RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/Field%20name%20mapping.csv"), 
@@ -597,7 +601,14 @@ pha_cleanadd <- pha_cleanadd %>%
          property_type = ifelse(is.na(property_type.y), property_type.x, property_type.y)) %>%
   select(-portfolio.x, -portfolio.y, -property_name.x, -property_name.y, -property_type.x, -property_type.y)
 
-
+if (UW == TRUE){
+  rm(fields)
+  rm(secondary)
+  rm(secondary_init)
+  rm(pha_recoded)
+  rm(pha_cleanadd)
+  gc()
+} else {
 #### Save point ####
 saveRDS(pha_cleanadd, file = file.path(housing_path, pha_cleanadd_fn))
 
@@ -608,3 +619,4 @@ rm(new_addresses)
 rm(pha_recoded)
 rm(pha_cleanadd)
 gc()
+}
