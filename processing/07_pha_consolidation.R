@@ -27,24 +27,6 @@
 #### Set up global parameter and call in libraries ####
 options(max.print = 350, tibble.print_max = 50, scipen = 999)
 
-<<<<<<< HEAD
-library(housing) # contains many useful functions for cleaning
-library(openxlsx) # Used to import/export Excel files
-library(lubridate) # Used to manipulate dates
-library(tidyverse) # Used to manipulate data
-library(data.table) # Used to manipulate data
-library(RJSONIO)
-
-source(file = paste0(getwd(), "/processing/metadata/set_data_env.r"))
-METADATA <- RJSONIO::fromJSON(paste0(getwd(), "/processing/metadata/metadata.json"))
-set_data_envr(METADATA,"combined")
-
-
-#### Bring in data and sort ####
-pha_cleanadd <- readRDS(file.path(housing_path, pha_cleanadd_fn))
-pha_cleanadd_sort <- pha_cleanadd %>% arrange(pid, act_date, agency_new, prog_type)
-
-=======
 require(housing) # contains many useful functions for cleaning
 require(openxlsx) # Used to import/export Excel files
 require(lubridate) # Used to manipulate dates
@@ -67,7 +49,6 @@ if (UW == TRUE) {
   pha_cleanadd <- readRDS(file.path(housing_path, pha_cleanadd_fn))
   pha_cleanadd_sort <- pha_cleanadd %>% arrange(pid, act_date, agency_new, prog_type)
 }
->>>>>>> als_uw_merge
 
 #### Create key variables ####
 ### Final agency and program fields
@@ -581,20 +562,6 @@ time_end <- Sys.time()
 print(paste0("Drop #7 took ", round(difftime(time_end, time_start, units = "secs"), 2), " secs"))
 
 
-<<<<<<< HEAD
-=======
-if (UW == TRUE) {
-  "skip save"
-} else {
-#### Save point ####
-saveRDS(pha_cleanadd_sort, file = paste0(housing_path, "pha_cleanadd_sort_mid-consolidation.Rda"))
-saveRDS(drop_track, file = paste0(housing_path, "drop_track_mid-consolidation.Rda"))
-}
-
-# pha_cleanadd_sort <- readRDS(file = paste0(housing_path, "/OrganizedData/pha_cleanadd_sort_mid-consolidation.Rda"))
-# drop_track <- readRDS(file = paste0(housing_path, "/OrganizedData/drop_track_mid-consolidation.Rda"))
-
->>>>>>> als_uw_merge
 
 #### Set up KCHA move outs ####
 # In the old KCHA system there was no record of when a household member moved
