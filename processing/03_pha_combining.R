@@ -25,7 +25,6 @@
 
 #### Set up global parameter and call in libraries ####
 require(housing) # contains many useful functions for cleaning
-require(odbc) # Used to connect to SQL server
 require(data.table) # Used to read in csv files more efficiently
 require(tidyverse) # Used to manipulate data
 require(RJSONIO)
@@ -39,6 +38,7 @@ set_data_envr(METADATA,"combined")
 
 #### Bring in data ####
 if(sql == TRUE) {
+  require(odbc) # Used to connect to SQL server
   db_apde51 <- dbConnect(odbc(), "PH_APDEStore51")
   # This takes ~65 seconds
   tbl_id_meta <- DBI::Id(schema = "stage", table = "pha_sha")
@@ -63,6 +63,9 @@ kcha_long <- kcha_long %>% mutate_at(vars(act_date, admit_date, dob, hh_dob),
 if (UW == F) {
   # Not sure if UW has this field. If so, can remove the if statement.
   kcha_long <- kcha_long %>% mutate(list_zip = as.numeric(list_zip))
+} else {
+  sha <- sha %>% mutate(unit_zip = as.numeric(unit_zip))
+  
 }
   
 

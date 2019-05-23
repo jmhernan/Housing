@@ -32,10 +32,6 @@ if(!require(housing)){
   require(housing) # contains many useful functions for cleaning
 }
 
-
-require(odbc) # Used to connect to SQL server
-
-
 if(!require(openxlsx)){
   install.packages("openxlsx", repos='http://cran.us.r-project.org')
   require(openxlsx) # Used to import/export Excel files
@@ -79,11 +75,12 @@ if(!require(phonics)){
 script <- RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
-# housing_source_dir <- "local_path"
+housing_source_dir <- "//home/joseh/source/Housing/processing/"
 METADATA = RJSONIO::fromJSON(paste0(housing_source_dir,"metadata/metadata.json"))
 set_data_envr(METADATA, "kcha_data")
 
 if (sql == TRUE) {
+  require(odbc) # Used to connect to SQL server
   db_apde51 <- dbConnect(odbc(), "PH_APDEStore51")
 }
 
@@ -142,13 +139,13 @@ if (add_2018 == TRUE) {
 
 # Some of the KCHA end of participation data is missing from the original extract
 if (UW == TRUE) {
-  kcha_eop <- fread(file = file.path(kcha_path, kcha_eop_fname),
+  kcha_eop <- fread(file = file.path(kcha_path, kcha_eop_fn),
                   na.strings = c("NA", "", "NULL", "N/A", "."),  
                   stringsAsFactors = F) %>% 
     mutate(HOH.Birthdate = as.Date(HOH.Birthdate, origin = "1899-12-30"), 
            Effective.Date = as.Date(Effective.Date, origin = "1899-12-30"))
 } else {
-  kcha_eop <- fread(file = file.path(kcha_path, kcha_eop_fname),
+  kcha_eop <- fread(file = file.path(kcha_path, kcha_eop_fn),
                     na.strings = c("NA", "", "NULL", "N/A", "."),  
                     stringsAsFactors = F)
 }
@@ -289,10 +286,12 @@ kcha_2017_2017_full <- list(kcha_p1_2017_2017, kcha_p2_2017_2017, kcha_p3_2017_2
     dtf1, dtf2, by = c("householdid", "certificationid", "h2a", "h2b")), .)
 nrow(kcha_2017_2017_full) == nrow(kcha_p1_2017_2017)
 
-kcha_2018_2018_full <- list(kcha_p1_2018_2018, kcha_p2_2018_2018, kcha_p3_2018_2018) %>%
-  Reduce(function(dtf1, dtf2) full_join(
-    dtf1, dtf2, by = c("householdid", "certificationid", "vouchernumber", "h2a", "h2b")), .)
-nrow(kcha_2018_2018_full) == nrow(kcha_p1_2018_2018)
+if (add_2018 == TRUE) {
+  kcha_2018_2018_full <- list(kcha_p1_2018_2018, kcha_p2_2018_2018, kcha_p3_2018_2018) %>%
+    Reduce(function(dtf1, dtf2) full_join(
+      dtf1, dtf2, by = c("householdid", "certificationid", "vouchernumber", "h2a", "h2b")), .)
+  nrow(kcha_2018_2018_full) == nrow(kcha_p1_2018_2018)
+}
 
 
 ### Rename and reformat a few variables to make for easier appending
@@ -315,16 +314,18 @@ kcha_2017_2017_full <- kcha_2017_2017_full %>%
   mutate_at(vars(h2b, h2h, starts_with("h3e")),
             funs(as.Date(., format = "%m/%d/%Y")))
 
-kcha_2018_2018_full <- kcha_2018_2018_full %>%
-  mutate_at(vars(h2b, h2h, starts_with("h3e")),
-            funs(as.Date(., format = "%m/%d/%Y")))
-
+if (add_2018 == TRUE) {
+  kcha_2018_2018_full <- kcha_2018_2018_full %>%
+    mutate_at(vars(h2b, h2h, starts_with("h3e")),
+              funs(as.Date(., format = "%m/%d/%Y")))
+}
 
 # Keep all SSNs as characters for now 
 # (2016/17 data already all character with newer version of fread)
-kcha_2018_2018_full <- kcha_2018_2018_full %>%
-  mutate_at(vars(starts_with("h3n")), funs(as.character(.)))
-
+if (add_2018 == TRUE) {
+  kcha_2018_2018_full <- kcha_2018_2018_full %>%
+    mutate_at(vars(starts_with("h3n")), funs(as.character(.)))
+}
 
 # Fix up some inconsistent naming in income fields of <2015 data
 kcha_2004_2015_full <- kcha_2004_2015_full %>%
@@ -336,34 +337,39 @@ kcha_2004_2015_full <- kcha_2004_2015_full %>%
          h19a10b = h1910b, h19a11b = h1911b, h19a12b = h1912b, h19a13b = h1913b,
          h19a14b = h1914b, h19a15b = h1915b, h19a16b = h1916b)
 
-# The city variable seems misnamed in 2016 data (ok in 2017)
-kcha_2016_2016_full <- kcha_2016_2016_full %>% rename(h5a3 = h5a2)
+if (UW == FALSE) {
+  # The city variable seems misnamed in 2016 data (ok in 2017)
+  kcha_2016_2016_full <- kcha_2016_2016_full %>% rename(h5a3 = h5a2)
+}
 
 # Fix up an inconsitent name in the 2017 data
 # Previously correcting types here but new version of fread obviates need for this
 kcha_2017_2017_full <- kcha_2017_2017_full %>% rename(spec_vouch = spec_voucher)
 
-# There are some 5+4 ZIPs in 2018 data, remove and make integer
-kcha_2018_2018_full <- kcha_2018_2018_full %>%
-  mutate(h5a5 = as.numeric(str_replace(h5a5, "-", "")))
-
-# Renaming voucher number field here makes it easier to join with EOP file later
-kcha_2018_2018_full <- kcha_2018_2018_full %>%
-  rename(vouch_num = vouchernumber)
+if (add_2018 == TRUE) {
+  # There are some 5+4 ZIPs in 2018 data, remove and make integer
+  kcha_2018_2018_full <- kcha_2018_2018_full %>%
+    mutate(h5a5 = as.numeric(str_replace(h5a5, "-", "")))
+  
+  # Renaming voucher number field here makes it easier to join with EOP file later
+  kcha_2018_2018_full <- kcha_2018_2018_full %>%
+    rename(vouch_num = vouchernumber)
+}
 
 
 # Add source field to track where each row came from
 kcha_2004_2015_full <- kcha_2004_2015_full %>% mutate(kcha_source = "kcha2015")
 kcha_2016_2016_full <- kcha_2016_2016_full %>% mutate(kcha_source = "kcha2016")
 kcha_2017_2017_full <- kcha_2017_2017_full %>% mutate(kcha_source = "kcha2017")
-kcha_2018_2018_full <- kcha_2018_2018_full %>% mutate(kcha_source = "kcha2018")
-
+if (add_2018 == TRUE) {
+  kcha_2018_2018_full <- kcha_2018_2018_full %>% mutate(kcha_source = "kcha2018")
+}
 ### Append latest extract
 if (add_2018 == TRUE) {
 kcha <- bind_rows(kcha_2004_2015_full, kcha_2016_2016_full, kcha_2017_2017_full,
                   kcha_2018_2018_full)
 } else {
-kcha <- bind_rows(kcha_2004_2015_full, kcha_2016_full, kcha_2017_full)
+kcha <- bind_rows(kcha_2004_2015_full, kcha_2016_2016_full, kcha_2017_2017_full)
 }
 
 #########################################
@@ -520,7 +526,7 @@ if (UW == TRUE) {
   kcha_eop <- kcha_eop %>%
     rename(householdid = `Household.ID`, vouch_num = `Voucher.Number`,
            hh_ssn = `HOH.SSN`, hh_dob = `HOH.Birthdate`, 
-           hh_lname = `HOH.Full.Name`, program_type = `Program.Type`,
+           hh_name = `HOH.Full.Name`, program_type = `Program.Type`,
            h2a = `HUD-50058.2a.Type.of.Action`, h2b = `Effective.Date`)
 } else {
 kcha_eop <- kcha_eop %>%
@@ -626,75 +632,142 @@ colnames(kcha) <- names[,1]
 # Remove temporary data
 rm(names)
 
-
-# Using an apply process over reshape due to memory issues
-# Make function to save space
-reshape_f <- function(df, min = 1, max = 14) {
-  
-  # Set up number of people in the data, ensure leading zero with sprintf
-  digits <- max(2, nchar(max))
-  people <- as.list(sprintf(paste0("%0", digits, ".0f"), min:max))
-  
-  df_inner <- df
-  
-  #Make function to get a person's info
-  person_f <- function(df_inner, x) {
-    print(paste0("Working on person ", x))
-    sublong <- df_inner %>%
-      select(h1a, h2a, h2b, h2c:h2h,
-             subsidy_id,
-             vouch_num,
-             certificationid,
-             h3a = paste0("h3a", x), # not reliable so make own member number
-             h3b = paste0("h3b", x),
-             h3c = paste0("h3c", x),
-             h3d = paste0("h3d", x),
-             h3e = paste0("h3e", x),
-             h3g = paste0("h3g", x),
-             h3h = paste0("h3h", x),
-             h3i = paste0("h3i", x),
-             h3j = paste0("h3j", x),
-             h3k1 = paste0("h3k1", x),
-             h3k2 = paste0("h3k2", x),
-             h3k3 = paste0("h3k3", x),
-             h3k4 = paste0("h3k4", x),
-             h3k5 = paste0("h3k5", x),
-             h3m = paste0("h3m", x),
-             h3n = paste0("h3n", x),
-             h19a1 = paste0("h19a1", x),
-             h19a2 = paste0("h19a2", x),
-             h19b = paste0("h19b", x),
-             h19d = paste0("h19d", x),
-             h19f = paste0("h19f", x),
-             h19h, h19k,
-             program_type,
-             spec_vouch,
-             h5a1a:h5a5,
-             h5d, h5e, h5f, h5g, h5j, h5k,
-             developmentname,
-             h20a, h20b, h20c, h20d, h20e,
-             h21a, h21b, h21d, h21e, h21f, h21i, h21j, 
-             h21k, h21m, h21n, h21p, h21q,
-             box04b, box04c,
-             hh_inc_fixed: hh_inc_adj_vary,
-             householdid,
-             hh_lname:hh_dob,
-             kcha_source,
-             eop_source,
-             hh_id_temp) %>%
-      mutate(mbr_num = x)
+if (UW == TRUE) {
+  # Using an apply process over reshape due to memory issues
+  # Make function to save space
+  reshape_f <- function(df, min = 1, max = 14) {
     
-    return(sublong)
+    # Set up number of people in the data, ensure leading zero with sprintf
+    digits <- max(2, nchar(max))
+    people <- as.list(sprintf(paste0("%0", digits, ".0f"), min:max))
+    
+    df_inner <- df
+    
+    #Make function to get a person's info
+    person_f <- function(df_inner, x) {
+      print(paste0("Working on person ", x))
+      sublong <- df_inner %>%
+        select(h1a, h2a, h2b, h2c:h2h,
+               subsidy_id,
+               vouch_num,
+               certificationid,
+               h3a = paste0("h3a", x), # not reliable so make own member number
+               h3b = paste0("h3b", x),
+               h3c = paste0("h3c", x),
+               h3d = paste0("h3d", x),
+               h3e = paste0("h3e", x),
+               h3g = paste0("h3g", x),
+               h3h = paste0("h3h", x),
+               h3i = paste0("h3i", x),
+               h3j = paste0("h3j", x),
+               h3k1 = paste0("h3k1", x),
+               h3k2 = paste0("h3k2", x),
+               h3k3 = paste0("h3k3", x),
+               h3k4 = paste0("h3k4", x),
+               h3k5 = paste0("h3k5", x),
+               h3m = paste0("h3m", x),
+               h3n = paste0("h3n", x),
+               h19a1 = paste0("h19a1", x),
+               h19a2 = paste0("h19a2", x),
+               h19b = paste0("h19b", x),
+               h19d = paste0("h19d", x),
+               h19f = paste0("h19f", x),
+               h19h, h19k,
+               program_type,
+               spec_vouch,
+               h5a1a:h5a5,
+               h5d, h5e, h5f, h5g, h5j, h5k,
+               developmentname,
+               h20a, h20b, h20c, h20d, h20e,
+               h21a, h21b, h21d, h21e, h21f, h21i, h21j, 
+               h21k, h21m, h21n, h21p, h21q,
+               hh_inc_fixed: hh_inc_adj_vary,
+               householdid,
+               hh_lname:hh_dob,
+               kcha_source,
+               eop_source,
+               hh_id_temp) %>%
+        mutate(mbr_num = x)
+      
+      return(sublong)
+    }
+    
+    # Run function over everyone
+    templist <- lapply(people, person_f, df = df_inner)
+    
+    # Turn back into a data frame
+    long_full <- as.data.frame(rbindlist(templist))
+    return(long_full)
   }
-  
-  # Run function over everyone
-  templist <- lapply(people, person_f, df = df_inner)
-  
-  # Turn back into a data frame
-  long_full <- as.data.frame(rbindlist(templist))
-  return(long_full)
+} else {
+  # Using an apply process over reshape due to memory issues
+  # Make function to save space
+  reshape_f <- function(df, min = 1, max = 14) {
+    
+    # Set up number of people in the data, ensure leading zero with sprintf
+    digits <- max(2, nchar(max))
+    people <- as.list(sprintf(paste0("%0", digits, ".0f"), min:max))
+    
+    df_inner <- df
+    
+    #Make function to get a person's info
+    person_f <- function(df_inner, x) {
+      print(paste0("Working on person ", x))
+      sublong <- df_inner %>%
+        select(h1a, h2a, h2b, h2c:h2h,
+               subsidy_id,
+               vouch_num,
+               certificationid,
+               h3a = paste0("h3a", x), # not reliable so make own member number
+               h3b = paste0("h3b", x),
+               h3c = paste0("h3c", x),
+               h3d = paste0("h3d", x),
+               h3e = paste0("h3e", x),
+               h3g = paste0("h3g", x),
+               h3h = paste0("h3h", x),
+               h3i = paste0("h3i", x),
+               h3j = paste0("h3j", x),
+               h3k1 = paste0("h3k1", x),
+               h3k2 = paste0("h3k2", x),
+               h3k3 = paste0("h3k3", x),
+               h3k4 = paste0("h3k4", x),
+               h3k5 = paste0("h3k5", x),
+               h3m = paste0("h3m", x),
+               h3n = paste0("h3n", x),
+               h19a1 = paste0("h19a1", x),
+               h19a2 = paste0("h19a2", x),
+               h19b = paste0("h19b", x),
+               h19d = paste0("h19d", x),
+               h19f = paste0("h19f", x),
+               h19h, h19k,
+               program_type,
+               spec_vouch,
+               h5a1a:h5a5,
+               h5d, h5e, h5f, h5g, h5j, h5k,
+               developmentname,
+               h20a, h20b, h20c, h20d, h20e,
+               h21a, h21b, h21d, h21e, h21f, h21i, h21j, 
+               h21k, h21m, h21n, h21p, h21q,
+               box04b, box04c,
+               hh_inc_fixed: hh_inc_adj_vary,
+               householdid,
+               hh_lname:hh_dob,
+               kcha_source,
+               eop_source,
+               hh_id_temp) %>%
+        mutate(mbr_num = x)
+      
+      return(sublong)
+    }
+    
+    # Run function over everyone
+    templist <- lapply(people, person_f, df = df_inner)
+    
+    # Turn back into a data frame
+    long_full <- as.data.frame(rbindlist(templist))
+    return(long_full)
+  }
 }
-
 kcha_long <- reshape_f(df = kcha, min = 1, max = 14)
 
 
@@ -856,7 +929,7 @@ rm(list = ls(pattern = "kcha_201[6|7|8]"))
 rm(list = ls(pattern = "panel_"))
 rm(list = ls(pattern = "p[1|2|3]_"))
 rm(list = c("fields", "reshape_f", "kcha_path"))
-rm(hhold_size)
+rm(hh_size)
 rm(list = c("kcha_portfolio_codes", "kcha_portfolio_codes_fn"))
 rm(kcha_eop_fn)
 rm(kcha)

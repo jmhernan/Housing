@@ -27,7 +27,6 @@
 options(max.print = 350, tibble.print_max = 50, scipen = 999)
 
 require(housing) # contains many useful functions for cleaning
-require(odbc) # Used to connect to SQL server
 require(openxlsx) # Used to import/export Excel files
 require(data.table) # Used to read in csv files more efficiently
 require(tidyverse) # Used to manipulate data
@@ -43,6 +42,7 @@ METADATA = RJSONIO::fromJSON(paste0(housing_source_dir,"metadata/metadata.json")
 set_data_envr(METADATA, "sha_data")
 
 if(sql == TRUE) {
+  require(odbc) # Used to connect to SQL server
   db_apde51 <- dbConnect(odbc(), "PH_APDEStore51")
 }
 
@@ -68,7 +68,7 @@ sha5b_2006_2017 <- fread(file = file.path(sha_path,
                    stringsAsFactors = F)
 
 if (add_2018 == TRUE) {
-  if (UW = TRUE) {
+  if (UW == TRUE) {
     # UW data originally sha6a + sha6b
     sha3a_2018_2018 <- fread(file = file.path(sha_path, sha3a_2018_2018_fn), 
                             na.strings = c("NA", "", "NULL", "N/A"), stringsAsFactors = F)
@@ -146,18 +146,19 @@ if (add_2018 == TRUE) {
                   sha5a_2018_2018 = sha5a_2018_2018, sha5b_2018_2018 = sha5b_2018_2018,
                   sha_prog_codes = sha_prog_codes, 
                   sha_portfolio_codes = sha_portfolio_codes)
-} else {
-    dfs <- list(sha1a_2004_2006 = sha1a_2004_2006, sha1b_2004_2006 = sha1b_2004_2006, 
-                sha1c_2004_2006 = sha1c_2004_2006, 
-                sha2a_2007_2012 = sha2a_2007_2012, sha2b_2007_2012 = sha2b_2007_2012, 
-                sha2c_2007_2012 = sha2c_2007_2012, 
-                sha3a_2012_2017 = sha3a_2012_2017, sha3b_2012_2017 = sha3b_2012_2017,
-                sha4_2004_2006 = sha4_2004_2006, 
-                sha5a_2006_2017 = sha5a_2006_2017, sha5b_2006_2017 = sha5b_2006_2017,
-                sha_prog_codes = sha_prog_codes, 
-                sha_portfolio_codes = sha_portfolio_codes)
-}
+    } else {
+      dfs <- list(sha1a_2004_2006 = sha1a_2004_2006, sha1b_2004_2006 = sha1b_2004_2006, 
+                  sha1c_2004_2006 = sha1c_2004_2006, 
+                  sha2a_2007_2012 = sha2a_2007_2012, sha2b_2007_2012 = sha2b_2007_2012, 
+                  sha2c_2007_2012 = sha2c_2007_2012, 
+                  sha3a_2012_2017 = sha3a_2012_2017, sha3b_2012_2017 = sha3b_2012_2017,
+                  sha4_2004_2006 = sha4_2004_2006, 
+                  sha5a_2006_2017 = sha5a_2006_2017, sha5b_2006_2017 = sha5b_2006_2017,
+                  sha_prog_codes = sha_prog_codes, 
+                  sha_portfolio_codes = sha_portfolio_codes)
+    }
   }
+}
 
 # Deduplicate data
 df_dedups <- lapply(dfs, function(data) {
@@ -180,8 +181,8 @@ if (UW == TRUE) {
   fields_uw <- read.xlsx(file.path(sha_path, field_name_mapping_fn), 1)
   
   fields_uw <- fields_uw %>%
-    mutate_at(vars(sha_old:sha_new_ph), funs(gsub("[[:punct:]]|[[:space:]]","",.))) %>%
-    mutate_at(vars(sha_old:sha_new_ph), funs(tolower(.)))
+    mutate_at(vars(SHA_old:SHA_new_ph), funs(gsub("[[:punct:]]|[[:space:]]","",.))) %>%
+    mutate_at(vars(SHA_old:SHA_new_ph), funs(tolower(.)))
 }
 
 # Get rid of spaces, characters, and capitals in existing names
@@ -215,7 +216,7 @@ sha_portfolio_codes <- setnames(sha_portfolio_codes, fields$common_name[match(na
 sha_prog_codes <- setnames(sha_prog_codes, fields$common_name[match(names(sha_prog_codes), fields$sha_prog_port_codes)])
 
 if (add_2018 == TRUE) {
-  if (UW = TRUE) {
+  if (UW == TRUE) {
     # UW data originally sha6a + sha6b
     sha3a_2018_2018 <- setnames(sha3a_2018_2018, fields$common_name[match(names(sha3a_2018_2018), fields$sha_new_ph)])
     sha3b_2018_2018 <- setnames(sha3b_2018_2018, fields$common_name[match(names(sha3b_2018_2018), fields$sha_new_ph)])
@@ -238,7 +239,7 @@ if (UW == TRUE) {
   colnames(sha3a_2018_2018)[11] <- "hh_fname"
   colnames(sha3a_2018_2018)[12] <- "hh_mname"
 
-  sha3a_2018_2018 <- sha3b_2018_2018 %>%
+  sha3a_2018_2018 <- sha3a_2018_2018 %>%
     mutate(property_id = as.character(property_id),
            act_type = as.numeric(ifelse(act_type == "E", 3, act_type)),
            mbr_num = as.numeric(ifelse(mbr_num == "NULL", NA, mbr_num)),
@@ -551,17 +552,19 @@ if (UW == TRUE) {
                   sha3b_2012_2017 = sha3b_2012_2017, sha5b_2006_2017 = sha5b_2006_2017,
                   sha3b_2018_2018 = sha3b_2018_2018)
 } else {
-  if (add_2018 == T) {
-    dfs_inc <- list(sha1b_2004_2006 = sha1b_2004_2006, sha1c_2004_2006 = sha1c_2004_2006, 
-                    sha2b_2007_2012 = sha2b_2007_2012, sha2c_2007_2012 = sha2c_2007_2012, 
-                    sha3b_2012_2017 = sha3b_2012_2017, sha5b_2006_2017 = sha5b_2006_2017,
-                    sha3b_2018_2018 = sha3b_2018_2018, sha5b_2018_2018 = sha5b_2018_2018)
-  } else {
+    if (add_2018 == T) {
+      dfs_inc <- list(sha1b_2004_2006 = sha1b_2004_2006, sha1c_2004_2006 = sha1c_2004_2006, 
+                      sha2b_2007_2012 = sha2b_2007_2012, sha2c_2007_2012 = sha2c_2007_2012, 
+                      sha3b_2012_2017 = sha3b_2012_2017, sha5b_2006_2017 = sha5b_2006_2017,
+                      sha3b_2018_2018 = sha3b_2018_2018, sha5b_2018_2018 = sha5b_2018_2018)
+      } else {
     dfs_inc <- list(sha1b_2004_2006 = sha1b_2004_2006, sha1c_2004_2006 = sha1c_2004_2006, 
                     sha2b_2007_2012 = sha2b_2007_2012, sha2c_2007_2012 = sha2c_2007_2012, 
                     sha3b_2012_2017 = sha3b_2012_2017, sha5b_2006_2017 = sha5b_2006_2017)
-  }
+      }
 }
+
+      
 
 
 # Apply function to all relevant data frames (takes a few minutes to run)
@@ -603,7 +606,7 @@ if(UW == TRUE) {
     select(-hh_fname,-mname)
     
   names(sha1a_2004_2006.fix) <- names(sha1a_2004_2006)
-  names(sha1a.fix)[57] = "v57"
+  names(sha1a_2004_2006.fix)[57] = "v57"
 
   sha1a_2004_2006.fix <- sha1a_2004_2006.fix %>%
     select(incasset_id:hh_lname, hh_lnamesuf = 56, hh_fname:lname, lnamesuf = 57, fname:55)
@@ -676,7 +679,7 @@ if (UW == TRUE) {
   ### Clean column types before append ### change to match new mappings  check other things
   sha1 <- sha1 %>%
           mutate(subs_type = as.character(subs_type),
-                hh_size = as.integer(hh_size),
+                hhold_size = as.integer(hhold_size),
                 rent_tenant = as.numeric(rent_tenant),
                 r_hisp = as.numeric(r_hisp),
                 hh_asset_val=as.numeric(hh_asset_val),

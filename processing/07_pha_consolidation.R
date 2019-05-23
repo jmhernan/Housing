@@ -41,17 +41,14 @@ METADATA = RJSONIO::fromJSON(paste0(housing_source_dir,"metadata/metadata.json")
 set_data_envr(METADATA,"combined")
 
 if (UW == TRUE) {
-  print("don't need to load")} else {  
-#### Bring in data and sort ####
-pha_cleanadd_geocoded <- readRDS(file = paste0(housing_path, 
-                                      pha_cleanadd_geocoded_fn))
-
+  print("don't need to load")
+  pha_cleanadd_sort <- pha_cleanadd %>% arrange(pid, act_date, agency_new, prog_type)
+  rm(pha_cleanadd)
+} else {  
+  #### Bring in data and sort ####
+  pha_cleanadd <- readRDS(file.path(housing_path, pha_cleanadd_fn))
+  pha_cleanadd_sort <- pha_cleanadd %>% arrange(pid, act_date, agency_new, prog_type)
 }
-
-pha_cleanadd_sort <- pha_cleanadd_geocoded %>%
-  arrange(pid, act_date, agency_new, prog_type) 
-
-rm(pha_cleanadd_geocoded)
 
 #### Create key variables ####
 ### Final agency and program fields

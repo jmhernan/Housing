@@ -114,7 +114,6 @@ pha_cleanadd <- pha_cleanadd %>%
               TRUE ~ .
             )))
   
-
 ### Specific addresses
 if (UW == F & sql == T) {
   # Address will be first checked against a reference table that 
@@ -177,7 +176,7 @@ if (UW == F & sql == T) {
   
   pha_cleanadd <- left_join(pha_cleanadd, adds_specific, 
                             by = c("unit_add", "unit_apt", "unit_apt2", "unit_city", "unit_state", "unit_zip")) %>%
-    select(-date_add_added, -notes)
+    select(-notes)
   
   # Bring over addresses not matched (could use overidden == 0 too)
   pha_cleanadd <- pha_cleanadd %>%
@@ -515,7 +514,7 @@ if (UW == T) {
   # For some reason there are a bunch of blank ZIPs even though other rows with 
   # the same address have a ZIP. Sort by address and copy over largest ZIP.
   pha_cleanadd <- pha_cleanadd %>%
-    group_by(unit_add_new, unit_apt_new, unit_apt2_new, unit_city_new, unit_state_new) %>%
+    group_by(unit_add_new, unit_apt_new, unit_city_new, unit_state_new) %>%
     mutate(unit_zip_new = ifelse(is.na(unit_zip_new), max(unit_zip_new), unit_zip_new)) %>%
     ungroup()
 }
@@ -547,7 +546,9 @@ fields <- read.csv(text = RCurl::getURL("https://raw.githubusercontent.com/PHSKC
                    header = TRUE, stringsAsFactors = FALSE)
 
 # Clean up KCHA field names
-colnames(kcha_dev_adds) <- str_replace_all(colnames(kcha_dev_adds), "[:punct:]|[:space:]", "")
+if (UW == FALSE) {
+  colnames(kcha_dev_adds) <- str_replace_all(colnames(kcha_dev_adds), "[:punct:]|[:space:]", "")
+}
 kcha_dev_adds <- setnames(kcha_dev_adds, fields$common_name[match(names(kcha_dev_adds), fields$kcha_modified)])
 
 
@@ -606,7 +607,6 @@ if (UW == TRUE){
   rm(secondary)
   rm(secondary_init)
   rm(pha_recoded)
-  rm(pha_cleanadd)
   gc()
 } else {
 #### Save point ####
