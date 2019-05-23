@@ -24,23 +24,21 @@
 ###############################################################################
 
 #### Set up global parameter and call in libraries ####
-library(housing) # contains many useful functions for cleaning
-library(odbc) # Used to connect to SQL server
-library(data.table) # Used to manipulate data
-library(tidyverse) # Used to manipulate data
-library(RJSONIO)
-library(RCurl)
+require(housing) # contains many useful functions for cleaning
+require(data.table) # Used to read in csv files more efficiently
+require(tidyverse) # Used to manipulate data
+require(RJSONIO)
+require(RCurl)
 
+script <- RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/metadata/set_data_env.r")
+eval(parse(text = script))
 
-source(file = paste0(getwd(), "/processing/metadata/set_data_env.r"))
-METADATA <- RJSONIO::fromJSON(paste0(getwd(), "/processing/metadata/metadata.json"))
+METADATA = RJSONIO::fromJSON(paste0(housing_source_dir,"metadata/metadata.json"))
 set_data_envr(METADATA,"combined")
-
-options(max.print = 400, tibble.print_max = 50, scipen = 999)
-
 
 #### Bring in data ####
 if(sql == TRUE) {
+  require(odbc) # Used to connect to SQL server
   db_apde51 <- dbConnect(odbc(), "PH_APDEStore51")
   # This takes ~65 seconds
   tbl_id_meta <- DBI::Id(schema = "stage", table = "pha_sha")
@@ -65,11 +63,17 @@ kcha_long <- kcha_long %>% mutate_at(vars(act_date, admit_date, dob, hh_dob),
 if (UW == F) {
   # Not sure if UW has this field. If so, can remove the if statement.
   kcha_long <- kcha_long %>% mutate(list_zip = as.numeric(list_zip))
+} else {
+  sha <- sha %>% mutate(unit_zip = as.numeric(unit_zip))
+  
 }
   
 
 #### Make variable to track where data came from ####
-sha <- mutate(sha, agency_new = "SHA")
+sha <- sha %>% 
+  mutate(agency_new = "SHA",
+         access_unit = as.numeric(access_unit),
+         access_req = as.numeric(access_req))
 kcha_long <- mutate(kcha_long, agency_new = "KCHA")
 
 
@@ -271,10 +275,10 @@ pha[, gender_new_cnt := if_else(ssn_new_junk == 0 | ssn_c_junk == 0, .N, as.inte
     by = .(ssn_new, ssn_c, gender_new)]
 pha <- setDF(pha)
 
-
+if (sql == TRUE) {
 #### Save point ####
 saveRDS(pha, file = file.path(housing_path, pha_fn))
-
+}
 
 #### Clean up ####
 rm(kcha_long)

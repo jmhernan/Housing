@@ -27,6 +27,7 @@
 #### Set up global parameter and call in libraries ####
 options(max.print = 350, tibble.print_max = 50, scipen = 999)
 
+<<<<<<< HEAD
 library(housing) # contains many useful functions for cleaning
 library(openxlsx) # Used to import/export Excel files
 library(lubridate) # Used to manipulate dates
@@ -43,6 +44,30 @@ set_data_envr(METADATA,"combined")
 pha_cleanadd <- readRDS(file.path(housing_path, pha_cleanadd_fn))
 pha_cleanadd_sort <- pha_cleanadd %>% arrange(pid, act_date, agency_new, prog_type)
 
+=======
+require(housing) # contains many useful functions for cleaning
+require(openxlsx) # Used to import/export Excel files
+require(lubridate) # Used to manipulate dates
+require(tidyverse) # Used to manipulate data
+require(RJSONIO)
+require(RCurl)
+
+script <- RCurl::getURL("https://raw.githubusercontent.com/jmhernan/Housing/uw_test/processing/metadata/set_data_env.r")
+eval(parse(text = script))
+
+METADATA = RJSONIO::fromJSON(paste0(housing_source_dir,"metadata/metadata.json"))
+set_data_envr(METADATA,"combined")
+
+if (UW == TRUE) {
+  print("don't need to load")
+  pha_cleanadd_sort <- pha_cleanadd %>% arrange(pid, act_date, agency_new, prog_type)
+  rm(pha_cleanadd)
+} else {  
+  #### Bring in data and sort ####
+  pha_cleanadd <- readRDS(file.path(housing_path, pha_cleanadd_fn))
+  pha_cleanadd_sort <- pha_cleanadd %>% arrange(pid, act_date, agency_new, prog_type)
+}
+>>>>>>> als_uw_merge
 
 #### Create key variables ####
 ### Final agency and program fields
@@ -222,7 +247,6 @@ pha_cleanadd_sort[, ':=' (port_out_kcha = ifelse(
         act_type %in% c(5, 16)), 1, port_out_kcha),
   port_out_sha = ifelse(agency_new == "KCHA" & cost_pha == "WA001", 1, port_out_sha))]
 
-
 #### Remove missing dates (droptype = 1) ####
 time_start <- Sys.time()
 dfsize_head <- nrow(pha_cleanadd_sort) # Keep track of size of data frame at each step
@@ -235,7 +259,6 @@ pha_cleanadd_sort <- pha_cleanadd_sort[drop != 1]
 dfsize_head - nrow(pha_cleanadd_sort)
 time_end <- Sys.time()
 print(paste0("Drop #1 took ", round(difftime(time_end, time_start, units = "secs"), 2), " secs"))
-
 
 #### Clean up duplicate rows - multiple EOP types (droptype == 2) ####
 # Some duplicate rows where there is both an EOP action (#6) and an
@@ -277,7 +300,6 @@ dfsize_head - nrow(pha_cleanadd_sort) # Track how many rows were dropped
 time_end <- Sys.time()
 print(paste0("Drop #2 took ", round(difftime(time_end, time_start, units = "secs"), 2), " secs"))
 
-
 #### Clean up duplicate rows - cert IDs etc. (droptype == 3) ####
 # Some duplicate rows are because of multiple incomes/assets information 
 # reported at the same action date 
@@ -307,8 +329,6 @@ dfsize_head - nrow(pha_cleanadd_sort) # Track how many rows were dropped
 time_end <- Sys.time()
 print(paste0("Drop #3 took ", round(difftime(time_end, time_start, units = "secs"), 2), " secs"))
 
-
-
 #### Drop rows with missing address data that are not port outs (droptype = 4) ####
 time_start <- Sys.time()
 dfsize_head <- nrow(pha_cleanadd_sort)
@@ -331,7 +351,6 @@ dfsize_head - nrow(pha_cleanadd_sort) # Track how many rows were dropped
 time_end <- Sys.time()
 print(paste0("Drop #4 took ", round(difftime(time_end, time_start, units = "secs"), 2), " secs"))
 
-
 #### Find when a person is in both KCHA and SHA data due to port ins/outs (droptype = 5) ####
 # First find rows with the same program/date but one row is missing the 
 # cost_pha field (makes the steps below work better)
@@ -350,7 +369,6 @@ drop_track <- left_join(drop_track, drop_temp, by = "row") %>%
   select(-drop.x, -drop.y)
 # Finish dropping rows
 pha_cleanadd_sort <- pha_cleanadd_sort[drop == 0 | is.na(drop)]
-
 
 # Find instances when person is in both agencies on the same or similar date and delete the row for the agency
 # not filling in the form (i.e., usually the one being billed for their port out)
@@ -405,8 +423,6 @@ repeat {
 dfsize_head - nrow(pha_cleanadd_sort) # Track how many rows were dropped
 time_end <- Sys.time()
 print(paste0("Drop #5 took ", round(difftime(time_end, time_start, units = "secs"), 2), " secs"))
-
-
 
 #### Get rid of blank addresses when there is an address for the same date (droptype = 6) ####
 # NO LONGER within a given program/subtype/spec voucher etc.
@@ -565,6 +581,20 @@ time_end <- Sys.time()
 print(paste0("Drop #7 took ", round(difftime(time_end, time_start, units = "secs"), 2), " secs"))
 
 
+<<<<<<< HEAD
+=======
+if (UW == TRUE) {
+  "skip save"
+} else {
+#### Save point ####
+saveRDS(pha_cleanadd_sort, file = paste0(housing_path, "pha_cleanadd_sort_mid-consolidation.Rda"))
+saveRDS(drop_track, file = paste0(housing_path, "drop_track_mid-consolidation.Rda"))
+}
+
+# pha_cleanadd_sort <- readRDS(file = paste0(housing_path, "/OrganizedData/pha_cleanadd_sort_mid-consolidation.Rda"))
+# drop_track <- readRDS(file = paste0(housing_path, "/OrganizedData/drop_track_mid-consolidation.Rda"))
+
+>>>>>>> als_uw_merge
 
 #### Set up KCHA move outs ####
 # In the old KCHA system there was no record of when a household member moved
@@ -608,7 +638,6 @@ pha_cleanadd_sort <- merge(pha_cleanadd_sort, act_dates_merge,
 rm(max_date)
 rm(hh_act_dates)
 rm(act_dates_merge)
-
 
 #### Different agencies with the same or similar action date (droptype = 8) ####
 # At this point in the row consolidation there are some residual rows recording port outs when they are also showing in the other PHA
@@ -710,7 +739,6 @@ pha_cleanadd_sort <- pha_cleanadd_sort[drop == 0 | is.na(drop)]
 dfsize_head - nrow(pha_cleanadd_sort)
 time_end <- Sys.time()
 print(paste0("Drop #9 took ", round(difftime(time_end, time_start, units = "secs"), 2), " secs"))
-
 
 #### Remove annual reexaminations/intermediate visits within a given address + program (droptype = 10) ####
 # Want to avoid capturing the first or last row for a person at a given address
@@ -980,7 +1008,6 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>%
          port_out_sha = ifelse(agency_new == "KCHA" & port_in == 1 & cost_pha == "WA001", 1, port_out_sha))
 
 
-
 #### Rows where startdate = enddate and also startdate = the next row's startdate (often same program) (droptype = 12) ####
 # Use the same logic as droptype 6 to decide which row to keep
 dfsize_head <- nrow(pha_cleanadd_sort)
@@ -1089,7 +1116,6 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>% filter(drop == 0 | is.na(drop))
 dfsize_head - nrow(pha_cleanadd_sort) # Track how many rows were dropped
 
 
-
 #### Deal with overlapping program/agency dates (droptype == 13) ####
 ### First find rows with identical start and end dates
 dfsize_head <- nrow(pha_cleanadd_sort)
@@ -1190,7 +1216,6 @@ drop_track <- left_join(drop_track, drop_temp, by = "row") %>%
 pha_cleanadd_sort <- pha_cleanadd_sort %>% filter(drop == 0 | is.na(drop))
 dfsize_head - nrow(pha_cleanadd_sort) # Track how many rows were dropped
 
-
 ### Truncate overlapping dates
 # Assume that most recent program/agency is the one to count 
 # (will be biased to the second one alphabetically when start dates are the same, if any remain)
@@ -1223,7 +1248,12 @@ pha_cleanadd_sort <- pha_cleanadd_sort %>%
 # See how many rows were affected
 sum(pha_cleanadd_sort$truncated, na.rm = T)
 
-
+if (UW == TRUE) {
+  rm(drop_temp)
+  rm(list = ls(pattern = "dfsize"))
+  pha_cleanadd_sort_dedup <- pha_cleanadd_sort
+  rm(pha_cleanadd_sort)
+  gc() } else {
 #### Export drop tracking data ####
 saveRDS(drop_track, file = paste0(housing_path, "drop_track.Rda"))
 #drop_track <- readRDS(file = paste0(housing_path, "/OrganizedData/drop_track.Rda"))
@@ -1239,3 +1269,4 @@ rm(pha_cleanadd)
 rm(pha_cleanadd_sort)
 rm(list = ls(pattern = "dfsize"))
 gc()
+  }
