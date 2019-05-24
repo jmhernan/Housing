@@ -468,6 +468,7 @@ dfsize_head - nrow(pha_cleanadd_sort)
 
 
 # First wave of cleaning
+time_start <- Sys.time()
 dfsize_head <- nrow(pha_cleanadd_sort)
 repeat {
   dfsize <-  nrow(pha_cleanadd_sort)
@@ -602,16 +603,8 @@ repeat {
   }
 }
 dfsize_head - nrow(pha_cleanadd_sort)
-
-
-if (UW == TRUE) {
-  "skip save"
-} else {
-#### Save point ####
-saveRDS(pha_cleanadd_sort, file = paste0(housing_path, "pha_cleanadd_sort_mid-consolidation.Rda"))
-saveRDS(drop_track, file = paste0(housing_path, "drop_track_mid-consolidation.Rda"))
-}
-
+time_end <- Sys.time()
+print(paste0("Drop #2 took ", round(difftime(time_end, time_start, units = "secs"), 2), " secs"))
 # pha_cleanadd_sort <- readRDS(file = paste0(housing_path, "/OrganizedData/pha_cleanadd_sort_mid-consolidation.Rda"))
 # drop_track <- readRDS(file = paste0(housing_path, "/OrganizedData/drop_track_mid-consolidation.Rda"))
 
