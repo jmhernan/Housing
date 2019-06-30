@@ -38,6 +38,7 @@ require(RCurl)
 script <- RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
+housing_source_dir <- "//home/joseh/source/Housing/processing/"
 METADATA = RJSONIO::fromJSON(paste0(housing_source_dir,"metadata/metadata.json"))
 set_data_envr(METADATA, "sha_data")
 
@@ -72,16 +73,34 @@ if (add_2018 == TRUE) {
     # UW data originally sha6a + sha6b
     sha3a_2018_2018 <- fread(file = file.path(sha_path, sha3a_2018_2018_fn), 
                             na.strings = c("NA", "", "NULL", "N/A"), stringsAsFactors = F)
+    
+    sha3a_2018_update <- fread(file = file.path(sha_path, sha3a_2018_update_fn), 
+                               na.strings = c("NA", "", "NULL", "N/A"), stringsAsFactors = F) %>%
+      rename(familymemberssn3n = ssn,
+             ssn = hh_ssn,
+             membernumber3a = mbr_num)
+    
     sha3b_2018_2018 <- fread(file = file.path(sha_path, sha3b_2018_2018_fn), 
                             na.strings = c("NA", "", "NULL", "N/A"), stringsAsFactors = F)
+    
+    sha5a_2018_2018 <- read.xlsx(file.path(sha_path, sha5a_2018_2018_fn), detectDates = T) %>%
+      select(-`Flast.Subsidy.Ammount.-.21m`)
+    
+    sha5a_2018_update <- fread(file = file.path(sha_path, sha5a_2018_update_fn), 
+                               na.strings = c("NA", "", "NULL", "N/A"), stringsAsFactors = F) %>%
+      select(-`Flat Subsidy Amount - 21m`)
+   
+  
   } else {
     sha3a_2018_2018 <- fread(file = file.path(sha_path, sha3a_2018_2018_fn), 
                             na.strings = c("NA", "", "NULL", "N/A"), stringsAsFactors = F)
+    
     sha3b_2018_2018 <- fread(file = file.path(sha_path, sha3b_2018_2018_fn), 
                             na.strings = c("NA", "", "NULL", "N/A"), stringsAsFactors = F)
     
     sha5a_2018_2018 <- read.xlsx(file.path(sha_path, sha5a_2018_2018_fn),
                                 detectDates = T)
+    
     sha5b_2018_2018 <- fread(file = file.path(sha_path,
                                               sha5b_2018_2018_fn),
                             na.strings = c("NA", "", "NULL", "N/A"), 
@@ -129,8 +148,10 @@ if (add_2018 == TRUE) {
               sha2c_2007_2012 = sha2c_2007_2012, 
               sha3a_2012_2017 = sha3a_2012_2017, sha3b_2012_2017 = sha3b_2012_2017,
               sha3a_2018_2018 = sha3a_2018_2018, sha3b_2018_2018 = sha3b_2018_2018,
+              sha3a_2018_update = sha3a_2018_update,
               sha4_2004_2006 = sha4_2004_2006, 
               sha5a_2006_2017 = sha5a_2006_2017, sha5b_2006_2017 = sha5b_2006_2017,
+              sha5a_2018_2018 = sha5a_2018_2018, sha5a_2018_update = sha5a_2018_update,
               sha_prog_codes = sha_prog_codes, 
               sha_portfolio_codes = sha_portfolio_codes)
   } else {
@@ -219,7 +240,10 @@ if (add_2018 == TRUE) {
   if (UW == TRUE) {
     # UW data originally sha6a + sha6b
     sha3a_2018_2018 <- setnames(sha3a_2018_2018, fields$common_name[match(names(sha3a_2018_2018), fields$sha_new_ph)])
+    sha3a_2018_update <- setnames(sha3a_2018_update, fields$common_name[match(names(sha3a_2018_update), fields$sha_new_ph)])
     sha3b_2018_2018 <- setnames(sha3b_2018_2018, fields$common_name[match(names(sha3b_2018_2018), fields$sha_new_ph)])
+    sha5a_2018_2018 <- setnames(sha5a_2018_2018, fields$common_name[match(names(sha5a_2018_2018), fields$sha_new_hcv)])
+    sha5a_2018_update <- setnames(sha5a_2018_update, fields$common_name[match(names(sha5a_2018_update), fields$sha_new_hcv)])
   } else {
     sha3a_2018_2018 <- setnames(sha3a_2018_2018, fields$common_name[match(names(sha3a_2018_2018), fields$sha_new_ph)])
     sha3b_2018_2018 <- setnames(sha3b_2018_2018, fields$common_name[match(names(sha3b_2018_2018), fields$sha_new_ph)])
@@ -240,6 +264,13 @@ if (UW == TRUE) {
   colnames(sha3a_2018_2018)[12] <- "hh_mname"
 
   sha3a_2018_2018 <- sha3a_2018_2018 %>%
+    mutate(property_id = as.character(property_id),
+           act_type = as.numeric(ifelse(act_type == "E", 3, act_type)),
+           mbr_num = as.numeric(ifelse(mbr_num == "NULL", NA, mbr_num)),
+           r_hisp = as.numeric(ifelse(r_hisp == "NULL", NA, r_hisp)))
+  
+  # add updated sha3a HERE
+  sha3a_2018_update <- sha3a_2018_update %>%
     mutate(property_id = as.character(property_id),
            act_type = as.numeric(ifelse(act_type == "E", 3, act_type)),
            mbr_num = as.numeric(ifelse(mbr_num == "NULL", NA, mbr_num)),
@@ -588,13 +619,24 @@ sha3a_2012_2017 <- sha3a_2012_2017 %>%
          r_hisp = as.numeric(ifelse(r_hisp == "NULL", NA, r_hisp))
   )
 
-if (add_2018 == T) {
+if (add_2018 == T & UW == T) {
   sha3a_2018_2018 <- sha3a_2018_2018 %>%
     mutate(property_id = as.character(property_id),
            act_type = as.numeric(ifelse(act_type == "E", 3, act_type)),
            mbr_num = as.numeric(ifelse(mbr_num == "NULL", NA, mbr_num)),
-           r_hisp = as.numeric(ifelse(r_hisp == "NULL", NA, r_hisp))
-    )
+           r_hisp = as.numeric(ifelse(r_hisp == "NULL", NA, r_hisp)))
+  
+  sha3a_2018_update <- sha3a_2018_update %>%
+             mutate(property_id = as.character(property_id),
+                    act_type = as.numeric(ifelse(act_type == "E", 3, act_type)),
+                    mbr_num = as.numeric(ifelse(mbr_num == "NULL", NA, mbr_num)),
+                    r_hisp = as.numeric(ifelse(r_hisp == "NULL", NA, r_hisp)))
+} else {
+  sha3a_2018_2018 <- sha3a_2018_2018 %>%
+    mutate(property_id = as.character(property_id),
+           act_type = as.numeric(ifelse(act_type == "E", 3, act_type)),
+           mbr_num = as.numeric(ifelse(mbr_num == "NULL", NA, mbr_num)),
+           r_hisp = as.numeric(ifelse(r_hisp == "NULL", NA, r_hisp)))
 }
 
 # UW DATA CODE
@@ -662,7 +704,8 @@ if (add_2018 == T) {
   sha3 <- bind_rows(left_join(sha3a_2012_2017, sha3b_2012_2017, 
                              by = c("incasset_id", "mbr_num" = "inc_mbr_num")),
                     left_join(sha3a_2018_2018, sha3b_2018_2018, 
-                              by = c("incasset_id", "mbr_num" = "inc_mbr_num")))
+                              by = c("incasset_id", "mbr_num" = "inc_mbr_num")),
+                    sha3a_2018_update)
                     
 } else {
   sha3 <- left_join(sha3a_2012_2017, sha3b_2012_2017, 
@@ -763,7 +806,7 @@ sha5a_2006_2017 <- sha5a_2006_2017 %>%
     r_hisp %in% c("2 ", "2") ~ 0
   )))
 
-if (add_2018 == T & UW == F) {
+if (add_2018 == T) {
   sha5a_2018_2018 <- sha5a_2018_2018 %>%
     mutate(
       act_type = car::recode(act_type, c("'Annual HQS Inspection Only' = 13; 
@@ -791,6 +834,34 @@ if (add_2018 == T & UW == F) {
   
   
   sha5a_2018_2018 <- yesno_f(sha5a_2018_2018, portability, disability, tb_rent_ceiling)
+  
+  sha5a_2018_update <- sha5a_2018_update %>%
+    mutate(
+      act_type = car::recode(act_type, c("'Annual HQS Inspection Only' = 13; 
+                                         'Annual Reexamination' = 2;
+                                         'Annual Reexamination Searching' = 9; 'End Participation' = 6;
+                                         'Expiration of Voucher' = 11; 'FSS/WtW Addendum Only' = 8;
+                                         'Historical Adjustment' = 14; 'Interim Reexamination' = 3; 
+                                         'Issuance of Voucher' = 10; 'New Admission' = 1; 
+                                         'Other Change of Unit' = 7; 
+                                         'Port-Out Update (Not Submitted To MTCS)' = 16;
+                                         'Portability Move-in' = 4; 'Portability Move-out' = 5; 
+                                         'Portablity Move-out' = 5; 'Void' = 15; else = NA")),
+      r_hisp = as.numeric(case_when(
+        r_hisp %in% c("1 ", "1") ~ 1,
+        r_hisp %in% c("2 ", "2") ~ 0
+      ))
+      ) %>%
+    # Several fields came through as character because of NULL text
+    # Checked that NULL is the only chracter so ignore warning message about NAs
+    mutate_at(vars(unit_zip, bed_cnt, rent_tenant, rent_mixfam, cost_month, rent_gross,
+                   rent_tenant_owner, rent_mixfam_owner), 
+              funs(as.numeric(.))) %>%
+    mutate_at(vars(contains("date"), dob), funs(as.Date(., format = "%Y-%m-%d", 
+                                                        origin = "1899-12-30")))
+  
+  
+  sha5a_2018_update <- yesno_f(sha5a_2018_update, portability, disability, tb_rent_ceiling)
 }
 
 # Join with income and asset files
@@ -799,13 +870,26 @@ sha4 <- left_join(sha4_2004_2006, sha1b_2004_2006,
 sha4 <- left_join(sha4, sha1c_2004_2006, by = c("incasset_id"))
 sha4 <- left_join(sha4, sha_prog_codes, by = c("increment"))
 
-if (UW == TRUE) {
-  sha5 <- left_join(sha5a_2006_2017, sha5b_2006_2017, 
-                    by = c("cert_id", "mbr_id"))
+if (add_2018 == T & UW == TRUE) {
+  sha5a_2018_update %>% select(`monthlyamountofrepayment2g`) %>% glimpse()
+  sha5 <- bind_rows(
+    left_join(sha5a_2006_2017, sha5b_2006_2017, 
+                    by = c("cert_id", "mbr_id")),
+    sha5a_2018_2018 %>%
+      mutate(inc = as.integer(inc),
+             inc_excl = as.integer(inc_excl),
+             inc_adj = as.integer(inc_adj),
+             asset_inc = as.integer(asset_inc),
+             asset_val  = as.integer(asset_val)),
+    sha5a_2018_update %>%
+      mutate(`monthlyamountofrepayment2g` = as.character(`monthlyamountofrepayment2g`),
+             `yearunitwasbuilt5j` = as.character(`yearunitwasbuilt5j`),
+             `totalyearsofschool3r` = as.character(`totalyearsofschool3r`)))
+  
   sha5 <- left_join(sha5, sha_vouch_type, by = c("cert_id", "hh_id", "mbr_id", "act_type", "act_date"))
   sha5 <- left_join(sha5, sha_prog_codes, by = c("increment"))
 } else {
-  if (add_2018 == T) {
+  if (add_2018 == T & UW == F) {
     sha5 <- bind_rows(
       left_join(sha5a_2006_2017, sha5b_2006_2017,
                 by = c("cert_id", "mbr_id", "increment")),
@@ -920,8 +1004,6 @@ if (UW == T) {
 sha <- sha %>% mutate(mbr_num = ifelse(is.na(mbr_num) & ssn == hh_ssn & 
                                          lname == hh_lname & fname == hh_fname,
                         1, mbr_num))
-
-
 
 #### Fix up SHA member numbers and head-of-household info ####
 # ISSUE 1: Some households seem to have multiple HoHs recorded

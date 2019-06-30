@@ -362,8 +362,30 @@ kcha_2004_2015_full <- kcha_2004_2015_full %>% mutate(kcha_source = "kcha2015")
 kcha_2016_2016_full <- kcha_2016_2016_full %>% mutate(kcha_source = "kcha2016")
 kcha_2017_2017_full <- kcha_2017_2017_full %>% mutate(kcha_source = "kcha2017")
 if (add_2018 == TRUE) {
-  kcha_2018_2018_full <- kcha_2018_2018_full %>% mutate(kcha_source = "kcha2018")
+  kcha_2018_2018_full <- kcha_2018_2018_full %>% mutate(kcha_source = "kcha2018") %>%
+    mutate(h3a11 = as.integer(h3a11),
+           h3a12 = as.integer(h3a12),
+           h3a13 = as.integer(h3a13),
+           h3g11 = as.character(h3g11),
+           h3g12 = as.character(h3g12),
+           h3m11 = as.integer(h3m11),
+           h3m12 = as.integer(h3m12),
+           h3m13 = as.integer(h3m13),
+           h19a7b = as.integer(h19a7b),
+           h19a8b = as.integer(h19a8b),
+           h19d07 = as.integer(h19d07),
+           h19d08 = as.integer(h19d08),
+           h19f07 = as.integer(h19f07),
+           h19f08 = as.integer(h19f08),
+           h20c = as.integer(h20c),
+           h19f10 = as.integer(h19f10),
+           h19f09 = as.integer(h19f09),
+           h19d10 = as.integer(h19d10),
+           h19d09 = as.integer(h19d09),
+           h19a9b = as.integer(h19a9b),
+           h19a10b = as.integer(h19a10b))
 }
+
 ### Append latest extract
 if (add_2018 == TRUE) {
 kcha <- bind_rows(kcha_2004_2015_full, kcha_2016_2016_full, kcha_2017_2017_full,
