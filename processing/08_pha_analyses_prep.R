@@ -213,6 +213,45 @@ pha_longitudinal <- pha_longitudinal %>%
   left_join(., zips, by = c("unit_zip_new" = "zipcode"))
 rm(zips)
 
+# UW VARS TO EXTRACT
+names(pha_longitudinal)
+if (UW == T) {
+  uw_vars <- c(
+    'pid',
+    'hh_id',
+    'relcode',
+    'ssn_id_m6',
+    'lname_new_m6',
+    'fname_new_m6',
+    'mname_new_m6',
+    'lnamesuf_new_m6',
+    'dob',
+    'gender2',
+    'r_aian_new',
+    'r_asian_new',
+    'r_black_new',
+    'r_nhpi_new',
+    'r_white_new',
+    'race_new',
+    'r_hisp_new',
+    'disability2',
+    'startdate',
+    'enddate',
+    'agency_new',
+    'major_prog',
+    'prog_type',
+    'subsidy_type',
+    'vouch_type_final',
+    'operator_type',
+    'portfolio_final'
+  )
+  
+  pha_test <- pha_longitudinal %>% filter(pid == 1) %>% data.frame()
+  
+  pha_longitudinal_test <- pha_longitudinal  %>%
+    select(uw_vars) %>%
+    distinct()
+}
 
 
 #### Save point ####
@@ -222,3 +261,4 @@ write.csv(pha_longitudinal, file = paste0(hild_dir,"pha_longitudinal.csv"))
 ### Clean up remaining data frames
 rm(pha_cleanadd_sort_dedup)
 gc()
+

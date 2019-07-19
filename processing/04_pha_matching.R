@@ -945,7 +945,7 @@ pha_clean <- pha_complete6 %>%
 #### Trim extraneous variables ####
 # Try to limit to only those that are needed for cleanup or analyses
 # Adding in more variables increased the chance of duplicate rows per action date
-if(UW == TRUE) {
+if(UW == TRUE) { #need this to work for UW subset
   pha_clean <- pha_clean %>%
     select(
       # Person demographics
@@ -971,12 +971,14 @@ if(UW == TRUE) {
       # Rent details
       rent_type:bdrm_voucher, cost_month, rent_owner:tb_rent_ceiling,
       # Asset and income details
+      
       incasset_id, hh_asset_val, hh_asset_inc, hh_asset_impute, hh_asset_inc_final,
       asset_val, asset_inc,
       inc_fixed, inc_vary, inc, inc_excl, inc_adj_fixed, inc_adj_vary, inc_adj,
-      hh_inc_fixed, hh_inc_adj_fixed, hh_inc, 
-      hh_inc_vary, hh_inc_adj_vary, 
+      hh_inc_fixed, hh_inc_adj_fixed, hh_inc,
+      hh_inc_vary, hh_inc_adj_vary,
       hh_inc_tot, hh_inc_adj, hh_inc_deduct, hh_inc_tot_adj,
+
       # FSS and MTW details + assistance
       # ss, fss_cat, mtw_self_suff, mtw_admit_date,
       # assist_tanf:assist_eitc, child_care_srvc,
@@ -1011,12 +1013,14 @@ if(UW == TRUE) {
       # Rent details
       rent_type:bdrm_voucher, cost_month, rent_owner:tb_rent_ceiling,
       # Asset and income details
+      
       incasset_id, hh_asset_val, hh_asset_inc, hh_asset_impute, hh_asset_inc_final,
       asset_val, asset_inc,
       inc_fixed, inc_vary, inc, inc_excl, inc_adj_fixed, inc_adj_vary, inc_adj,
       hh_inc_fixed, hh_inc_adj_fixed, hh_inc, 
       hh_inc_vary, hh_inc_adj_vary, 
       hh_inc_tot, hh_inc_adj, hh_inc_deduct, hh_inc_tot_adj,
+      
       # FSS and MTW details + assistance
       fss, fss_cat, mtw_self_suff, mtw_admit_date,
       assist_tanf:assist_eitc, child_care_srvc,
@@ -1025,6 +1029,7 @@ if(UW == TRUE) {
       sha_source, kcha_source, eop_source
     )
 }
+
 # With some variables stripped out, can reduce the number of rows
 pha_clean <- pha_clean %>% distinct()
 

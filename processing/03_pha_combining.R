@@ -275,6 +275,7 @@ pha[, gender_new_cnt := if_else(ssn_new_junk == 0 | ssn_c_junk == 0, .N, as.inte
     by = .(ssn_new, ssn_c, gender_new)]
 pha <- setDF(pha)
 
+
 if (sql == TRUE) {
 #### Save point ####
 saveRDS(pha, file = file.path(housing_path, pha_fn))

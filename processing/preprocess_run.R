@@ -3,7 +3,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 
 hild_dir <- args[1]
-#hild_dir <- "/home/ubuntu/data/HILD/" #temp, will pass through python script
+#hild_dir <- "/home/joseh/data/HILD/" #temp, will pass through python script
 housing_source_dir <- args[2] 
 #housing_source_dir <- "/home/joseh/source/Housing/processing/" # temp, will pass through python script
 # local_metadata_path <- args[3]
