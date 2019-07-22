@@ -25,7 +25,6 @@
 
 #### Set up global parameter and call in libraries ####
 require(housing) # contains many useful functions for cleaning
-require(odbc) # Used to connect to SQL server
 require(data.table) # Used to read in csv files more efficiently
 require(tidyverse) # Used to manipulate data
 require(RJSONIO)
@@ -39,7 +38,7 @@ set_data_envr(METADATA,"combined")
 
 
 if(sql == TRUE) {
-  
+  require(odbc) # Used to connect to SQL server
   db.apde51 <- dbConnect(odbc(), "PH_APDEStore51")
   #### Bring in data ####
   # This takes ~60 seconds

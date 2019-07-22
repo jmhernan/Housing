@@ -72,6 +72,9 @@ if(!require(phonics)){
   require(phonics)
 }
 
+hild_dir <- "/home/joseh/data/HILD/"
+housing_source_dir <- "/home/joseh/source/Housing/processing/"
+
 script <- RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/metadata/set_data_env.r")
 eval(parse(text = script))
 
@@ -115,9 +118,18 @@ kcha_p3_2016_2016 <- fread(file = file.path(kcha_path, panel_3_2016_2016_fn),
 kcha_p1_2017_2017 <- fread(file = file.path(kcha_path, panel_1_2017_2017_fn), 
                       na.strings = c("NA", "", "NULL", "N/A", "."), 
                       stringsAsFactors = F)
+if (UW == T) {
+  kcha_p1_2017_2017 <- kcha_p1_2017_2017[,lapply(.SD,function(x){ifelse(x %in% c("NA", "", "NULL", "N/A", "."),NA,x)})]
+}
+
 kcha_p2_2017_2017 <- fread(file = file.path(kcha_path, panel_2_2017_2017_fn), 
-                      na.strings = c("NA", "", "NULL", "N/A", "."), 
+                           na.strings = c("NA", "", "NULL", "N/A", "."),
                       stringsAsFactors = F)
+
+if (UW == T) {
+  kcha_p2_2017_2017 <- kcha_p2_2017_2017[,lapply(.SD,function(x){ifelse(x %in% c("NA", "", "NULL", "N/A", "."),NA,x)})]
+}
+
 kcha_p3_2017_2017 <- fread(file = file.path(kcha_path, panel_3_2017_2017_fn), 
                       na.strings = c("NA", "", "NULL", "N/A", "."), 
                       stringsAsFactors = F)
@@ -135,6 +147,10 @@ if (add_2018 == TRUE) {
                         stringsAsFactors = F)
 }
 
+if (UW == T) {
+  kcha_p1_2018_2018 <- kcha_p1_2018_2018[,lapply(.SD,function(x){ifelse(x %in% c("NA", "", "NULL", "N/A", "."),NA,x)})]
+  kcha_p2_2018_2018 <- kcha_p2_2018_2018[,lapply(.SD,function(x){ifelse(x %in% c("TRUE"),NA,x)})]
+}
 
 # Some of the KCHA end of participation data is missing from the original extract
 if (UW == TRUE) {
@@ -360,11 +376,16 @@ if (add_2018 == TRUE) {
 kcha_2004_2015_full <- kcha_2004_2015_full %>% mutate(kcha_source = "kcha2015")
 kcha_2016_2016_full <- kcha_2016_2016_full %>% mutate(kcha_source = "kcha2016")
 kcha_2017_2017_full <- kcha_2017_2017_full %>% mutate(kcha_source = "kcha2017")
+
+kcha_2018_2018_full %>%
+  select(contains("11")) %>% glimpse()
+
+kcha_2017_2017_full %>%
+  select(contains("11")) %>% glimpse()
+
 if (add_2018 == TRUE) {
   kcha_2018_2018_full <- kcha_2018_2018_full %>% mutate(kcha_source = "kcha2018") %>%
-    mutate(h3a11 = as.integer(h3a11),
-           h3a12 = as.integer(h3a12),
-           h3a13 = as.integer(h3a13),
+    mutate(
            h3g11 = as.character(h3g11),
            h3g12 = as.character(h3g12),
            h3m11 = as.integer(h3m11),
@@ -789,6 +810,8 @@ if (UW == TRUE) {
     return(long_full)
   }
 }
+
+
 kcha_long <- reshape_f(df = kcha, min = 1, max = 14)
 
 
@@ -927,7 +950,6 @@ kcha_long <- yesno_f(kcha_long, correction, ph_rent_ceiling, disability,
 kcha_long <- char_f(kcha_long, property_id)
 
 kcha_long <- kcha_long %>% distinct()
-
 
 if (sql == TRUE) {
 ##### WRITE RESHAPED DATA TO SQL #####

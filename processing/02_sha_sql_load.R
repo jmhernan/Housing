@@ -32,10 +32,6 @@ require(data.table) # Used to read in csv files more efficiently
 require(tidyverse) # Used to manipulate data
 require(RJSONIO)
 require(RCurl)
-#devtools::install_github("hadley/dplyr")
-#require(dplyr)
-hild_dir <- "/home/joseh/data/HILD/"
-housing_source_dir <- "/home/joseh/source/Housing/processing/"
 
 script <- RCurl::getURL("https://raw.githubusercontent.com/PHSKC-APDE/Housing/master/processing/metadata/set_data_env.r")
 eval(parse(text = script))
@@ -784,6 +780,7 @@ sha5a_2006_2017 <- sha5a_2006_2017 %>%
   )))
 
 if (add_2018 == T) {
+  
   sha5a_2018_2018 <- sha5a_2018_2018 %>%
     mutate(
       act_type = car::recode(act_type, c("'Annual HQS Inspection Only' = 13; 
@@ -826,18 +823,22 @@ if (UW == T) {
 }
 
 if (add_2018 == T & UW == TRUE) {
+  sha5 <- left_join(sha5a_2006_2017, sha_vouch_type, by = c("cert_id", "hh_id", "mbr_id", "act_type", "act_date"))
+  sha5 <- left_join(sha5, sha_prog_codes, by = c("increment")) # maybe this step needs to happen after?
+  
+  all_equal(sha5, sha5a_2018_2018)
+  
   sha5 <- bind_rows(
-    sha5a_2006_2017,
+    sha5,
     sha5a_2018_2018 %>%
       mutate(inc = as.integer(inc),
              inc_excl = as.integer(inc_excl),
              inc_adj = as.integer(inc_adj),
              asset_inc = as.integer(asset_inc),
-             asset_val  = as.integer(asset_val))
+             asset_val  = as.integer(asset_val)) %>%
+      rename(increment = incrementshafield,
+             ssn = memberssn)
   )
-  
-  sha5 <- left_join(sha5, sha_vouch_type, by = c("cert_id", "hh_id", "mbr_id", "act_type", "act_date"))
-  sha5 <- left_join(sha5, sha_prog_codes, by = c("increment"))
 } else {
   if (add_2018 == T & UW == F) {
     sha5 <- bind_rows(

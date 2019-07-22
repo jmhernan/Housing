@@ -217,7 +217,7 @@ rm(zips)
 
 #### Save point ####
 # saveRDS(pha_longitudinal, file = paste0(housing_path, pha_longitudinal_fn))
-
+hild_dir = "/home/ubuntu/data/HILD/"
 write.csv(pha_longitudinal, file = paste0(hild_dir,"pha_longitudinal.csv"))
 ### Clean up remaining data frames
 rm(pha_cleanadd_sort_dedup)
