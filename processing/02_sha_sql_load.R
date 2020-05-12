@@ -51,7 +51,11 @@ sha3a_2012_2017 <- fread(file =
                            file.path(sha_path,
                                      sha3a_2012_2017_fn), 
                          na.strings = c("NA", "", "NULL", "N/A"),
-                         stringsAsFactors = F)
+                         stringsAsFactors = F) %>%
+  rename(
+    headofhousessn = SSN
+  )
+
 sha3b_2012_2017 <- fread(file = file.path(sha_path,
                                           sha3b_2012_2017_fn), 
                          na.strings = c("NA", "", "NULL", "N/A"), 
@@ -70,7 +74,7 @@ if (add_2018 == TRUE) {
     sha3a_2018_2018 <- fread(file = file.path(sha_path, sha3a_2018_2018_fn), 
                              na.strings = c("NA", "", "NULL", "N/A"), stringsAsFactors = F) %>%
       rename(familymemberssn3n = ssn,
-             ssn = hh_ssn,
+             hohssn = hh_ssn,
              membernumber3a = mbr_num,
              effectivedateofaction2b = act_date)
     
@@ -697,7 +701,7 @@ if (UW == TRUE) { # removed income values
   ### Clean column types before append ### change to match new mappings  check other things
   sha1 <- sha1 %>%
     mutate(subs_type = as.character(subs_type),
-           hhold_size = as.integer(hhold_size),
+           hh_size = as.integer(hh_size),
            rent_tenant = as.numeric(rent_tenant),
            r_hisp = as.numeric(r_hisp),
            hh_inc_tot_adj=as.numeric(hh_inc_tot_adj))

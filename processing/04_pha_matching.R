@@ -87,7 +87,7 @@ pairs1 <- getPairs(classify1, single.rows = FALSE)
 pairs1 <- pairs1 %>%
   mutate(
     # Add ID to each pair
-    pair = rep(seq(from = 1, to = nrow(.)/3), each = 3),
+    pair = rep(seq(from = 1, to = nrow(.)/2), each = 2),
     dob = as.Date(dob, origin = "1970-01-01")
   ) %>%
   # Fix up formatting by removing factors
@@ -215,7 +215,7 @@ pairs2 <- getPairs(classify2, single.rows = FALSE)
 pairs2 <- pairs2 %>%
   mutate(
     # Add ID to each pair
-    pair = rep(seq(from = 1, to = nrow(.)/3), each = 3),
+    pair = rep(seq(from = 1, to = nrow(.)/2), each = 2),
     dob_m1 = as.Date(dob_m1, origin = "1970-01-01")
   ) %>%
   # Fix up formatting by removing factors
@@ -336,7 +336,7 @@ pairs3 <- getPairs(classify3, single.rows = FALSE)
 pairs3 <- pairs3 %>%
   mutate(
     # Add ID to each pair
-    pair = rep(seq(from = 1, to = nrow(.)/3), each = 3),
+    pair = rep(seq(from = 1, to = nrow(.)/2), each = 2),
     dob_m2 = as.Date(dob_m2, origin = "1970-01-01")
   ) %>%
   # Fix up formatting by removing factors
@@ -459,7 +459,7 @@ pairs4 <- getPairs(classify4, single.rows = FALSE)
 pairs4 <- pairs4 %>%
   mutate(
     # Add ID to each pair
-    pair = rep(seq(from = 1, to = nrow(.)/3), each = 3),
+    pair = rep(seq(from = 1, to = nrow(.)/2), each = 2),
     dob_m3 = as.Date(dob_m3, origin = "1970-01-01")
   ) %>%
   # Fix up formatting by removing factors
@@ -796,7 +796,7 @@ pairs6 <- getPairs(classify6, single.rows = FALSE)
 pairs6 <- pairs6 %>%
   mutate(
     # Add ID to each pair
-    pair = rep(seq(from = 1, to = nrow(.)/3), each = 3),
+    pair = rep(seq(from = 1, to = nrow(.)/2), each = 2),
     dob_m5 = as.Date(dob_m5, origin = "1970-01-01")
   ) %>%
   # Fix up formatting by removing factors
